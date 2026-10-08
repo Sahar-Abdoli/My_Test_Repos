@@ -381,7 +381,7 @@ ol.tight li,ul.tight li{margin:4px 0}
 
   <div class="learn"><span class="badge b-wk">Working</span><b>PrincipalObjectAccess (POA): why it grows and how it shrinks</b>
     <p>POA stores direct shares, team shares, access-team membership and access inherited through cascade-share or reparent relationships. Deleting rows from it directly isn't supported. You shrink it by changing the security model (revoke sharing, change cascade, run the inherited-access cleanup). Expect it to shrink as flowsession rows are deleted <em>only if</em> the POA rows belong to flowsession records. Confirm that first.</p>
-    <div class="links"><a href="https://learn.microsoft.com/en-us/power-platform/admin/manage-principalobjectaccess-storage">Manage PrincipalObjectAccess storage</a> · <a href="https://learn.microsoft.com/en-us/troubleshoot/power-platform/power-apps/dataverse/cleanup-inherited-access">Clean up inherited access</a></div></div>
+    <div class="links"><a href="https://learn.microsoft.com/en-us/power-platform/admin/manage-principalobjectaccess-storage">Manage PrincipalObjectAccess storage</a> · <a href="https://learn.microsoft.com/en-us/power-apps/developer/data-platform/configure-entity-relationship-cascading-behavior">Table relationship cascading behavior (reparent / inherited access)</a></div></div>
 
   <div class="learn"><span class="badge b-aw">Awareness</span><b>FetchXML aggregate limits and counting at scale</b>
     <p>Aggregate queries on very large tables can fail when they hit the aggregate row limit. Count in date windows instead. Use <code>RetrieveTotalRecordCount</code> for fast approximate totals.</p></div>
