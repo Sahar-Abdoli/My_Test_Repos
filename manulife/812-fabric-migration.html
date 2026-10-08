@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric Migration Guide</title>
+<style>
+:root{
+  --bg:#f8fafc; --surface:#ffffff; --surface-2:#f1f5f9; --text:#0f172a; --muted:#475569; --border:#e2e8f0;
+  --accent:#4338ca; --accent-soft:#eef2ff; --accent-text:#ffffff;
+  --ok:#15803d; --ok-soft:#dcfce7; --warn:#b45309; --warn-soft:#fef3c7; --bad:#b91c1c; --bad-soft:#fee2e2;
+  --info-soft:#e0f2fe; --info:#0369a1;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b1020; --surface:#121a2e; --surface-2:#1a2340; --text:#e2e8f0; --muted:#94a3b8; --border:#27324f;
+    --accent:#818cf8; --accent-soft:#1e1b4b; --accent-text:#0b1020;
+    --ok:#4ade80; --ok-soft:#14321f; --warn:#fbbf24; --warn-soft:#3a2a0a; --bad:#f87171; --bad-soft:#3b1414;
+    --info-soft:#0c2a3d; --info:#7dd3fc;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-wrap:break-word}
+a{color:var(--accent)}
+nav.top{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--border)}
+nav.top .in{max-width:860px;margin:0 auto;padding:8px 16px;display:flex;gap:4px 14px;flex-wrap:wrap;font-size:13px}
+nav.top a{text-decoration:none;color:var(--muted);font-weight:600}
+nav.top a:hover{color:var(--accent)}
+main{max-width:860px;margin:0 auto;padding:0 16px 48px}
+header.hero{padding:28px 0 8px;border-bottom:3px solid var(--accent);margin-bottom:8px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:28px;line-height:1.2;margin:6px 0 10px}
+h2{font-size:22px;margin:40px 0 12px;padding-top:4px;border-top:1px solid var(--border)}
+h3{font-size:17px;margin:24px 0 8px}
+p,li{color:var(--text)}
+.muted{color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:16px 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.card .k{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.card .v{font-weight:600}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface);margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+th{background:var(--surface-2);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+tr:last-child td{border-bottom:none}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;letter-spacing:.02em}
+.p-block{background:var(--bad-soft);color:var(--bad)}
+.p-pend{background:var(--warn-soft);color:var(--warn)}
+.p-open{background:var(--info-soft);color:var(--info)}
+.p-ok{background:var(--ok-soft);color:var(--ok)}
+.badge-must{background:var(--accent);color:var(--accent-text)}
+.d-aw{background:var(--info-soft);color:var(--info)}
+.d-wk{background:var(--warn-soft);color:var(--warn)}
+.d-ex{background:var(--bad-soft);color:var(--bad)}
+/* dependency strip */
+.deps{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:12px 0}
+.dep{flex:1 1 150px;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:8px;padding:8px 10px;font-size:13px}
+.dep b{display:block;font-size:14px}
+.dep.block{border-top-color:var(--bad)} .dep.pend{border-top-color:var(--warn)} .dep.open{border-top-color:var(--info)}
+.arrowline{font-size:13px;color:var(--muted);margin:4px 0 0}
+ul.check{list-style:none;padding-left:0;margin:8px 0}
+ul.check li{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed var(--border)}
+ul.check li:last-child{border-bottom:none}
+ul.check input{margin-top:5px;accent-color:var(--accent);flex:none}
+.out{display:block;font-size:13px;color:var(--muted)}
+.out::before{content:"Output: ";font-weight:700;color:var(--accent)}
+details{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 14px;margin:10px 0}
+details>summary{cursor:pointer;font-weight:700}
+details[open]>summary{margin-bottom:6px}
+.q{padding:8px 0;border-bottom:1px dashed var(--border)}
+.q:last-child{border-bottom:none}
+.q .why{font-size:14px;color:var(--muted);display:block;margin-top:2px}
+.timeline{position:relative;margin:12px 0 0 6px;padding-left:18px;border-left:3px solid var(--accent)}
+.timeline .t{position:relative;margin:0 0 14px}
+.timeline .t::before{content:"";position:absolute;left:-26px;top:6px;width:13px;height:13px;border-radius:50%;background:var(--surface);border:3px solid var(--accent)}
+.timeline .t.buf::before{border-color:var(--warn)}
+.timeline .when{font-weight:700}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;background:var(--surface-2);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;overflow-x:auto;font-size:13px}
+footer{max-width:860px;margin:0 auto;padding:20px 16px 40px;color:var(--muted);font-size:13px;border-top:1px solid var(--border)}
+@media (max-width:520px){h1{font-size:23px}h2{font-size:19px}}
+</style>
+</head>
+<body>
+<nav class="top" aria-label="Sections"><div class="in">
+  <a href="#overview">Overview</a><a href="#do">Do</a><a href="#ask">Ask</a><a href="#learn">Learn</a><a href="#risks">Risks</a><a href="#assumptions">Assumptions</a><a href="#context">Context log</a>
+</div></nav>
+<main>
+
+<!-- ================= 1. HEADER ================= -->
+<header class="hero" id="overview">
+  <div class="eyebrow">Personal guide for Sahar &middot; ETS Power Platform</div>
+  <h1>#812 &ndash; Fabric / Power BI: Premium P SKU &rarr; Fabric F SKU migration</h1>
+  <p><a href="https://github.com/Sahar-Abdoli/PowerPlatformAgent/issues/2">GitHub issue Sahar-Abdoli/PowerPlatformAgent#2</a> &middot; recycled 2026-10-02 as the umbrella initiative</p>
+</header>
+
+<p><strong>In plain language:</strong> Manulife runs Power BI on Premium P1/P2/P3 capacities, a product Microsoft has stopped selling and is retiring. Every one of them has to move to a Fabric F capacity bought through Azure. The preferred approach is like-for-like: one F capacity per existing P capacity, sized from real usage data rather than a straight P-to-F mapping. Cost centers provision their own F capacity through a Cloud Catalog self-service module and move their workspaces. Your team writes the guidance and switches off the old P capacities. Fabric&rsquo;s other workloads (OneLake, warehouses, Spark and so on) stay locked down until the Global Data Office finishes its due diligence.</p>
+
+<div class="meta">
+  <div class="card"><div class="k">Your role</div><div class="v">Lead solution architect: design, guidance (#392), decommissioning</div></div>
+  <div class="card"><div class="k">Direction owner</div><div class="v">Michael Mills (ETS Power Platform), with EA and GDO</div></div>
+  <div class="card"><div class="k">Target</div><div class="v">July 2027</div></div>
+  <div class="card"><div class="k">In scope / out</div><div class="v">P1/P2/P3 in; A SKUs (Embedded) and PPU out</div></div>
+</div>
+
+<div class="callout warn"><strong>Record the 2026-10-06 meeting now.</strong> The issue was recycled on 10-02, and a meeting with Enterprise Architecture&rsquo;s chief architect was planned for 10-06. That meeting has probably happened, but its outcome isn&rsquo;t written anywhere. Add the decisions, open points and owners to the issue (and to the <a href="#context">Context log</a>) before anything else. Most of the plan below depends on it.</div>
+
+<h3>Dependency status</h3>
+<div class="deps" role="list">
+  <div class="dep block" role="listitem"><span class="pill p-block">Pending decision</span><b>#1132 Fabric Operating Model</b>EA/GDO decision. Confirms the like-for-like model and the responsibility split. <em>Blocks #392.</em></div>
+  <div class="dep block" role="listitem"><span class="pill p-block">Blocking prereq</span><b>#238 Cloud Catalog F-capacity module</b>Self-service provisioning. Without it, cost centers can&rsquo;t create F capacities.</div>
+  <div class="dep pend" role="listitem"><span class="pill p-pend">Blocked by #1132</span><b>#392 Guidance &amp; docs</b>End-user guide plus internal decommissioning KB (consolidates #390).</div>
+  <div class="dep open" role="listitem"><span class="pill p-open">Open</span><b>#1131 ServiceNow decom form</b>Cost center tells you &ldquo;Premium can go.&rdquo;</div>
+  <div class="dep open" role="listitem"><span class="pill p-open">Open, start now</span><b>#1130 Inventory accuracy</b>~2,700 workspaces; ~5% of cost-center data needs validation; 88 vs 53 capacities.</div>
+</div>
+<p class="arrowline"><strong>Critical path:</strong> #1132 decision &rarr; #392 guidance &rarr; first wave. Running in parallel: #238 module &rarr; cost centers can provision &rarr; reassign. #1130 inventory &rarr; right-sizing and wave plan. #1131 form &rarr; decommission &rarr; done. <strong>#1130 is the only workstream you can push fully on your own today.</strong></p>
+
+<!-- ================= 2. DO ================= -->
+<h2 id="do">What you should do</h2>
+
+<h3>This week (Oct 8&ndash;16, 2026)</h3>
+<ul class="check">
+  <li><input type="checkbox" aria-label="done"><div>Write up the 10-06 EA chief architect meeting: decisions, open points, owners and the next decision date for #1132. Post it as a comment on issue #2 and on #1132.<span class="out">Dated decision log entry on #2 and #1132</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Ask the Microsoft account team for the <strong>agreement end or renewal date of every P capacity subscription</strong> and the EA term end. The real deadline is whichever comes first: July 2027 or a P subscription expiring. After expiry Microsoft gives a 30-day grace period, then throttling from day 31 and a full block from day 91.<span class="out">Table: capacity &rarr; SKU &rarr; agreement end date &rarr; hard deadline</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Pin down the 88 vs 53 discrepancy (#1130). Get both numbers with their source, query and timestamp. Pull a tenant-wide capacity list straight from the admin API (<code>GET /v1.0/myorg/admin/capacities</code>, which returns sku, state, region and admins) and bucket it by SKU family: P, A/EM, PP (PPU), FT (trial), F. My hypothesis, unconfirmed: 88 counts every capacity object (Embedded, PPU, trial, existing F, inactive), and 53 is active P only.<span class="out">One-page reconciliation: 88 = a + b + c &hellip;; 53 = &hellip;; agreed in-scope count</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Make sure the Fabric Capacity Metrics app is installed and connected to <em>every</em> in-scope P capacity. It keeps only a short rolling history (about 14 days), so sizing evidence starts piling up only from the day it&rsquo;s connected.<span class="out">Metrics app workspace; list of capacities connected</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Get the latest status and a target date for #238 from the Cloud Catalog/FinOps team.<span class="out">Date on #238; known gaps listed</span></div></li>
+</ul>
+
+<h3>This quarter (to end of December 2026)</h3>
+<ul class="check">
+  <li><input type="checkbox" aria-label="done"><div><strong>Inventory baseline (#1130).</strong> Build a workspace &rarr; capacity &rarr; cost center &rarr; region &rarr; SKU table for the ~2,700 workspaces. Flag the ~5% of cost-center rows that need validation and send them to the owners. Also flag workspaces that contain large-format semantic models or non-Power BI Fabric items, because those can&rsquo;t move across regions.<span class="out">Reconciled inventory (CSV or SharePoint list) and a sync check against Command &amp; Control</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div><strong>Right-sizing method.</strong> Start from the CU mapping (P1&rarr;F64, P2&rarr;F128, P3&rarr;F256), then use the Metrics app to compare each capacity&rsquo;s peak and its 24-hour smoothed background load against the target F SKU. Agree rules with FinOps: when to size down (for example, sustained use under 50% with no throttling), when to keep the same size, and pay-as-you-go versus reservation. Note that an F capacity below F64 needs Pro licences for viewers.<span class="out">Sizing rubric (1 page) plus a recommended F SKU per capacity</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div><strong>Push #1132 to a decision.</strong> Bring a short decision paper: the like-for-like model, who holds the capacity-admin role, and the tenant settings that keep Fabric items restricted. Without it, #392 stays blocked.<span class="out">Signed-off Operating Model decision (or a dated escalation)</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div><strong>Governance guardrails before any F capacity exists.</strong> Agree with GDO how &ldquo;Users can create Fabric items&rdquo; is controlled. Capacity admins can override this setting per capacity, so if cost centers become capacity admins they could switch Fabric on themselves. Decide who holds capacity admin, and set up detection of non-Power BI items (Scanner API) as a backstop.<span class="out">Tenant/capacity settings baseline document and a detection query</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div><strong>Draft #392</strong> against the assumed model so it&rsquo;s ready the day #1132 lands. Cover: the end-user guide (provision via #238 &rarr; reassign &rarr; validate &rarr; raise the #1131 request) and the internal KB (decommission runbook, rollback, communications).<span class="out">#392 v0.9 draft (end-user guide plus decom KB)</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div><strong>Design #1131</strong> with the ServiceNow team. Fields: P capacity id, F capacity id, list of workspaces moved, validation evidence, cost-center approver, and the date Premium can be released.<span class="out">Form spec and approval workflow</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div><strong>Pilot</strong> one or two low-risk P capacities (ETS-owned if possible), same region, no large models or Fabric items. Time the reassignment, check refresh, gateways, RLS, paginated reports and XMLA connections, then decommission the P capacity end to end through #1131.<span class="out">Pilot report with measured timings, issues and fixes folded into #392</span></div></li>
+</ul>
+
+<h3>Through July 2027</h3>
+<ul class="check">
+  <li><input type="checkbox" aria-label="done"><div>Publish #392 v1 and run office hours for cost centers. Track each capacity in a single wave tracker with status: Not started &rarr; F provisioned &rarr; Workspaces moved &rarr; Validated &rarr; Decom requested &rarr; P released.<span class="out">Wave tracker (by capacity, with cost-center owner)</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Order the waves by <strong>P agreement end date first</strong>, then by complexity: simple, then large-model or cross-region, then critical (finance close, regulatory).<span class="out">Wave plan with frozen windows</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>After each move, watch the new F capacity in the Metrics app for 2&ndash;4 weeks (throttling, overage) before approving the P decommission.<span class="out">Per-capacity sign-off evidence attached to the #1131 ticket</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Decommission the P capacities: remove remaining workspaces, delete the capacity, and confirm with Microsoft or procurement that the P subscription line ends (and isn&rsquo;t auto-renewed).<span class="out">Decom log; P subscription count reaches 0</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Close-out: lessons learned, a final inventory showing 0 P capacities, and the handover of F capacity ops (monitoring, alerts, scaling) to the run team.<span class="out">Close-out report on #2</span></div></li>
+</ul>
+
+<h3>Suggested timeline (planned backwards from July 2027)</h3>
+<div class="timeline">
+  <div class="t"><div class="when">Oct 2026</div>Record the 10-06 outcome; collect P agreement end dates; reconcile 88/53; Metrics app on every capacity.</div>
+  <div class="t"><div class="when">Nov 2026</div>#1132 decision (target mid-Nov); sizing rubric agreed; #238 in test; #1131 spec.</div>
+  <div class="t"><div class="when">Dec 2026 &ndash; Jan 2027</div>Pilot of 1&ndash;2 capacities end to end (incl. decom). #392 v1 published by end of January.</div>
+  <div class="t"><div class="when">Feb &ndash; Mar 2027</div>Wave 1: simple and earliest-expiring capacities (~30%).</div>
+  <div class="t"><div class="when">Apr &ndash; May 2027</div>Wave 2: the bulk (~50%), with large-model and cross-region cases handled individually.</div>
+  <div class="t"><div class="when">Early Jun 2027</div>Wave 3: critical and stragglers (~20%). <strong>Last planned reassignment: 15 June.</strong></div>
+  <div class="t buf"><div class="when">15 Jun &ndash; 31 Jul 2027 (buffer)</div>About 6 weeks for escalations, post-move monitoring and the last P decommissions. Nothing new is planned in this window.</div>
+</div>
+<p class="muted">If any P agreement ends before July 2027, that capacity moves to Wave 1 regardless of complexity.</p>
+
+<details>
+<summary>Reuse opportunities in your PPOps toolkit (/home/user/powerplatformagent)</summary>
+<p><strong>What exists today:</strong></p>
+<ul>
+  <li><code>ppops pbi ls</code> (<code>src/PPOps.Cli/Commands/PowerBiCommands.cs</code>) lists workspaces with their capacity SKU, using <code>FabricService.WorkspacesAsync</code> (Fabric <code>/v1/workspaces</code> joined to <code>/v1/capacities</code>). <strong>Limitation:</strong> these are user-scoped endpoints, so it only sees workspaces and capacities the signed-in user can access. It can&rsquo;t produce the tenant-wide picture behind 88 vs 53.</li>
+  <li><code>Doctor.CapacityTypeAsync</code> already classifies a capacity by SKU (shared, P, F, PPU, trial). That logic can be reused for SKU-family bucketing.</li>
+  <li><code>diagnose pbi-refresh</code> (PbiRefreshPlaybook) already detects capacity, memory and timeout refresh failures. It&rsquo;s useful for post-move validation of critical semantic models.</li>
+  <li>The plan &rarr; apply &rarr; verify &rarr; rollback model, with its hash-chained audit log, fits workspace reassignment well.</li>
+</ul>
+<p><strong>Worthwhile extensions (in a branch; I haven&rsquo;t changed the repo):</strong></p>
+<ol>
+  <li><strong>Read-only <code>inventory capacities</code> command:</strong> calls Power BI admin <code>GetCapacitiesAsAdmin</code> plus Fabric admin <code>/v1/admin/workspaces</code> (which returns capacityId), then outputs a CSV of capacity &rarr; sku family &rarr; region &rarr; state &rarr; admins &rarr; workspace count. Diffing it against a Command &amp; Control export gives you a repeatable 88-vs-53 reconciliation playbook for #1130. It needs Tenant.Read.All and a Fabric admin role, which means an admin-consent conversation.</li>
+  <li><strong>Plan-gated <code>reassign</code> executor:</strong> Fabric <code>POST /v1/workspaces/{id}/assignToCapacity</code> (async, 202), verified by Power BI <code>CapacityAssignmentStatus</code>, with rollback back to the original P capacity id. This is useful for ETS-owned workspaces and for helping stuck cost centers, without giving them admin rights.</li>
+  <li><strong>Pre-move check:</strong> flags large-format models, non-Power BI Fabric items, and a target capacity in a different region from the source.</li>
+</ol>
+</details>
+
+<!-- ================= 3. ASK ================= -->
+<h2 id="ask">What you should ask</h2>
+<p class="muted">The <span class="pill badge-must">Must-ask</span> items are the top 5. Ask them first, because each one unblocks a dated decision.</p>
+
+<h3>Michael Mills / leadership</h3>
+<div class="q"><span class="pill badge-must">Must-ask #1</span> What did the 10-06 meeting with the EA chief architect decide, and what is the committed date for the #1132 Operating Model decision? Who escalates if it slips past mid-November?<span class="why">#1132 blocks #392 and the pilot. Without a date, the whole July 2027 timeline floats.</span></div>
+<div class="q">Is July 2027 a hard date (budget, contract) or a target? What does leadership want reported, how often, and in what format?<span class="why">Decides how much buffer you can trade away and what the wave tracker has to show.</span></div>
+<div class="q">If a cost center doesn&rsquo;t act, can ETS move its workspaces on its behalf, and who pays for the F capacity?<span class="why">Defines the enforcement path for stragglers in June 2027.</span></div>
+
+<h3>Enterprise Architecture chief architect</h3>
+<div class="q">Is like-for-like (one F per P) the confirmed standard, or are consolidation and shared capacities still on the table?<span class="why">Changes the #238 module design, sizing and the count of target capacities.</span></div>
+<div class="q">Which Azure regions are approved for F capacities, and do they match the current P capacity home regions?<span class="why">Workspaces with large-format models or Fabric items can&rsquo;t move across regions. A region mismatch turns a reassignment into a rebuild.</span></div>
+<div class="q">Who should hold the capacity-admin role on the new F capacities: ETS or the cost center?<span class="why">Capacity admins can override the &ldquo;Users can create Fabric items&rdquo; tenant setting, so this is a governance decision, not an admin detail.</span></div>
+
+<h3>Global Data Office</h3>
+<div class="q"><span class="pill badge-must">Must-ask #5</span> Exactly which Fabric workloads must stay off until due diligence is done, how will this be enforced (tenant setting, capacity delegation, security groups), and when is due diligence expected to finish?<span class="why">You need an enforceable settings baseline before the first F capacity is provisioned. Otherwise the restriction exists only on paper.</span></div>
+<div class="q">Do any existing P capacities already host non-Power BI Fabric items (lakehouses, notebooks, etc.)? If so, are they grandfathered, removed or frozen?<span class="why">Those workspaces have reassignment limits and need a policy decision.</span></div>
+<div class="q">Should Copilot and AI features be on or off on the new F capacities?<span class="why">F64+ enables extra capabilities. You need a decision before cost centers ask.</span></div>
+
+<h3>FinOps / Cloud Catalog team (#238)</h3>
+<div class="q"><span class="pill badge-must">Must-ask #3</span> When will the #238 self-service F-capacity module be in production? What will it set automatically (subscription, resource group, region, capacity admins, tags, cost center), and what can the requester choose?<span class="why">It&rsquo;s the blocking prerequisite for every wave. Its defaults also decide region and admin governance.</span></div>
+<div class="q">Pay-as-you-go or reservations? Who buys and owns the reservations (central or per cost center), and how are they charged back?<span class="why">Pausing saves money only on pay-as-you-go. Reservations are billed regardless. This drives the sizing rubric.</span></div>
+<div class="q">What is the policy on capacity overage (paid burst instead of throttling), and who sets the 24-hour threshold?<span class="why">Overage is reported GA from late September 2026 and billed above pay-as-you-go rates. It needs a default before go-live.</span></div>
+<div class="q">Can a cost center run P and F in parallel during cutover, and for how long is that budgeted?<span class="why">The overlap period is the main temporary cost driver.</span></div>
+
+<h3>Cost-center owners</h3>
+<div class="q">Which of your workspaces are business-critical, and when are your freeze periods (quarter close, regulatory reporting)?<span class="why">Drives wave sequencing.</span></div>
+<div class="q">Do you rely on XMLA endpoints, paginated reports, Power BI Report Server rights, Premium autoscale, or embedding from a P capacity?<span class="why">These need explicit validation or licence checks before the P capacity is cancelled.</span></div>
+<div class="q">Are the cost-center and owner values in Command &amp; Control correct for your workspaces (the ~5% to validate)?<span class="why">Wrong ownership means the wrong team is told to migrate, and the wrong budget pays.</span></div>
+
+<h3>Command &amp; Control / inventory owners (#1130)</h3>
+<div class="q"><span class="pill badge-must">Must-ask #4</span> What exactly do the counts 88 and 53 measure: which API or source, which SKU families, active or all states, and at what timestamp? How often does Command &amp; Control sync?<span class="why">Until the in-scope capacity count is agreed, sizing, cost estimates and wave plans are all built on sand.</span></div>
+<div class="q">Can Command &amp; Control track migration status per capacity and workspace (source P, target F, date moved)?<span class="why">Lets you avoid running a separate tracker.</span></div>
+<div class="q">Which identity (service principal or admin account) does it use, and can we read its raw export?<span class="why">Needed for an independent reconciliation run.</span></div>
+
+<h3>ServiceNow team (#1131)</h3>
+<div class="q">Can the decommission form check its inputs automatically (for example, &ldquo;no workspaces left on this P capacity&rdquo;) through an API, or will it be manual?<span class="why">Prevents a P capacity from being deleted while workspaces are still on it.</span></div>
+<div class="q">Which assignment group fulfils the request, what is the SLA, and who gives final approval?<span class="why">Decommissioning is your team&rsquo;s accountability.</span></div>
+
+<h3>Microsoft account team / FastTrack</h3>
+<div class="q"><span class="pill badge-must">Must-ask #2</span> For each P capacity subscription: when does the current agreement term end, and can it be renewed under our EA? When does our EA itself end? Are there migration incentives or overlap allowances?<span class="why">Microsoft&rsquo;s migration guidance says P subscriptions end at the close of their term (EA customers can renew until the EA ends). After that comes a 30-day grace period, throttling, then a block at day 91. This may set a deadline earlier than July 2027.</span></div>
+<div class="q">Can FastTrack or a CSA review our sizing approach and pilot results? Are there known issues with bulk reassignment at our scale (~2,700 workspaces)?<span class="why">Free expert validation and early warning on API limits.</span></div>
+<div class="q">How do Power BI Report Server licensing rights carry over from P to F?<span class="why">Microsoft says to verify the PBIRS licence before cancelling a P SKU.</span></div>
+
+<!-- ================= 4. LEARN ================= -->
+<h2 id="learn">What you need to learn</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>#</th><th>Topic</th><th>Why it matters here</th><th>Depth</th><th>Verified links</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Microsoft&rsquo;s P&rarr;F migration guidance and retirement phases</td><td>Grace (days 1&ndash;30), throttled (31&ndash;90), blocked (91+). P subscriptions end at their term; EA renewal is possible until the EA ends. This is your deadline logic.</td><td><span class="pill d-ex">Expert</span></td><td><a href="https://learn.microsoft.com/en-us/power-bi/support/premium-migration-overview">Migration overview</a> &middot; <a href="https://learn.microsoft.com/en-us/power-bi/support/premium-migration-decision-guide">Decision guide</a> &middot; <a href="https://learn.microsoft.com/en-us/power-bi/support/premium-migration-faq">FAQ</a></td></tr>
+<tr><td>2</td><td>Capacity sizing with the Fabric Capacity Metrics app</td><td>The like-for-like model says &ldquo;right-sized using utilization metrics.&rdquo; You&rsquo;ll defend every SKU choice with this data.</td><td><span class="pill d-ex">Expert</span></td><td><a href="https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app">Metrics app</a> &middot; <a href="https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-install">Install</a> &middot; <a href="https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app-compute-page">Compute page</a></td></tr>
+<tr><td>3</td><td>Smoothing, throttling and capacity overage</td><td>Explains why a right-sized F capacity can still delay or reject work, and the new paid-overage option.</td><td><span class="pill d-wk">Working</span></td><td><a href="https://learn.microsoft.com/en-us/fabric/enterprise/throttling">Throttling policy</a> &middot; <a href="https://community.fabric.microsoft.com/blog/-/Introducing-capacity-overage-Flexibility-when-you-need-it-most/5172085">Capacity overage (Fabric blog)</a></td></tr>
+<tr><td>4</td><td>Workspace reassignment mechanics and limits</td><td>Async API. Workspaces with non-Power BI Fabric items can&rsquo;t move across regions. Large-format models are tied to their region. This is where moves fail.</td><td><span class="pill d-ex">Expert</span></td><td><a href="https://learn.microsoft.com/en-us/rest/api/fabric/core/workspaces/assign-to-capacity">Assign to capacity (Fabric)</a> &middot; <a href="https://learn.microsoft.com/en-us/rest/api/power-bi/capacities/groups-capacity-assignment-status">Capacity assignment status</a> &middot; <a href="https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-large-models">Large semantic models</a></td></tr>
+<tr><td>5</td><td>Tenant settings and capacity delegation for Fabric items</td><td>&ldquo;Users can create Fabric items&rdquo; is automatically delegated to capacity admins, who can override it. This is central to the GDO restriction.</td><td><span class="pill d-ex">Expert</span></td><td><a href="https://learn.microsoft.com/en-us/fabric/admin/fabric-switch">Enable/disable Fabric</a> &middot; <a href="https://learn.microsoft.com/en-gb/fabric/admin/tenant-settings-index">Tenant settings index</a></td></tr>
+<tr><td>6</td><td>Admin and inventory APIs</td><td>The tenant-wide capacity and workspace inventory for #1130, and the basis for PPOps extensions.</td><td><span class="pill d-wk">Working</span></td><td><a href="https://learn.microsoft.com/en-us/rest/api/power-bi/admin/get-capacities-as-admin">Get Capacities As Admin</a> &middot; <a href="https://learn.microsoft.com/en-us/rest/api/fabric/admin/workspaces/get-workspace">Fabric admin Get Workspace</a> &middot; <a href="https://learn.microsoft.com/en-us/fabric/governance/metadata-scanning-run">Scanner API (metadata scanning)</a></td></tr>
+<tr><td>7</td><td>F SKU licensing and buying</td><td>CU table, the F64 threshold for free viewers, and that F capacities are bought only in Azure (per-second billing).</td><td><span class="pill d-wk">Working</span></td><td><a href="https://learn.microsoft.com/en-us/fabric/enterprise/licenses">Fabric licenses</a> &middot; <a href="https://learn.microsoft.com/en-us/fabric/enterprise/buy-subscription">Buy a subscription</a></td></tr>
+<tr><td>8</td><td>Reservations and pause/resume economics</td><td>Pausing helps only pay-as-you-go. Reservations bill regardless. Pausing settles smoothed overages to the bill immediately.</td><td><span class="pill d-wk">Working</span></td><td><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/fabric-capacity">Fabric capacity reservations</a> &middot; <a href="https://learn.microsoft.com/en-us/fabric/enterprise/pause-resume">Pause and resume</a></td></tr>
+<tr><td>9</td><td>Fabric workloads beyond Power BI (OneLake, Lakehouse, Warehouse)</td><td>Out of scope for now, but enough to answer cost-center questions and spot Fabric items in the inventory.</td><td><span class="pill d-aw">Awareness</span></td><td><a href="https://learn.microsoft.com/en-us/fabric/enterprise/licenses">Fabric licenses</a> (concepts)</td></tr>
+</tbody></table></div>
+
+<div class="callout"><strong>Recent changes to know about (verify before relying on them):</strong>
+<ul>
+  <li><strong>Capacity overage reported GA at FabCon Europe (29 Sep 2026).</strong> Excess CU is billed on a separate meter, reported at about 3&times; the pay-as-you-go rate, up to an admin-set rolling 24-hour threshold. Reservations don&rsquo;t cover it. Secondary sources disagree on whether it&rsquo;s on by default for new capacities, so check the setting on the first F capacity #238 creates.</li>
+  <li><strong>From 15 Oct 2026, OneLake operations run by Spark are reported to count toward OneLake CU consumption.</strong> This matters only if GDO allows Spark, but it changes Metrics app baselines.</li>
+  <li>Workspace-level surge protection, on-demand billing and an F0 SKU have been announced, with mixed preview/GA status. Don&rsquo;t design around them yet.</li>
+</ul>
+<span class="muted">These items come from the Fabric community blog and secondary write-ups. I couldn&rsquo;t open the Learn pages in full from here, so confirm them with the Microsoft account team.</span></div>
+
+<!-- ================= 5. RISKS ================= -->
+<h2 id="risks">Risks &amp; watch-outs</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Risk</th><th>Why</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td><span class="pill p-block">High</span> A P agreement ends before July 2027</td><td>Grace, then throttling, then a block at day 91, independent of your plan.</td><td>Get every agreement end date in week 1 and schedule those capacities first.</td></tr>
+<tr><td><span class="pill p-block">High</span> #1132 decision slips</td><td>Blocks #392, so cost centers have no guidance and waves can&rsquo;t start.</td><td>Draft #392 on the assumed model now, and agree an escalation date with Michael.</td></tr>
+<tr><td><span class="pill p-block">High</span> #238 module late or incomplete</td><td>No self-service provisioning, so ETS becomes the bottleneck for every capacity.</td><td>Agree a fallback manual provisioning path with FinOps for the pilot and Wave 1.</td></tr>
+<tr><td><span class="pill p-block">High</span> Fabric restriction bypassed</td><td>Capacity admins can override &ldquo;Users can create Fabric items&rdquo; on their capacity.</td><td>ETS keeps capacity admin, or adds a policy plus Scanner-based detection and a monthly report to GDO.</td></tr>
+<tr><td><span class="pill p-pend">Med</span> Inventory wrong (88 vs 53, ~5% ownership)</td><td>Wrong cost estimates, missed capacities, wrong owners notified.</td><td>Independent admin-API reconciliation, owner attestation, and a re-run before each wave.</td></tr>
+<tr><td><span class="pill p-pend">Med</span> Cross-region or large-model blockers</td><td>Reassignment fails or requires a rebuild.</td><td>Pre-move check per workspace; F capacity in the same region as the source P.</td></tr>
+<tr><td><span class="pill p-pend">Med</span> Under-sizing on F</td><td>Throttling, or unplanned overage charges after the move.</td><td>Size on peak plus background load, watch 2&ndash;4 weeks before decom, and set an overage threshold policy.</td></tr>
+<tr><td><span class="pill p-pend">Med</span> Double running cost</td><td>P and F billed in parallel while cost centers delay.</td><td>A target decom SLA after reassignment (for example, 30 days) tracked in #1131.</td></tr>
+<tr><td><span class="pill p-open">Low&ndash;Med</span> Hidden dependencies</td><td>XMLA tools, paginated reports, PBIRS rights, embedding, gateways, autoscale.</td><td>Checklist in #392, plus validation in the pilot.</td></tr>
+<tr><td><span class="pill p-open">Low&ndash;Med</span> Scope creep into A SKUs or PPU</td><td>Out of scope, but they show up in the same inventories.</td><td>Exclude them explicitly by SKU family in every count and report.</td></tr>
+</tbody></table></div>
+
+<!-- ================= 6. ASSUMPTIONS ================= -->
+<h2 id="assumptions">Assumptions (confirm each)</h2>
+<ul class="check">
+  <li><input type="checkbox" aria-label="confirmed"><div>The 10-06 meeting happened and didn&rsquo;t change scope or the like-for-like preference. <em>Ask Michael.</em></div></li>
+  <li><input type="checkbox" aria-label="confirmed"><div>&ldquo;July 2027&rdquo; means all P capacities decommissioned, not just workspaces moved.</div></li>
+  <li><input type="checkbox" aria-label="confirmed"><div>The 53 figure is closer to the true in-scope P count, and 88 includes other SKU families or states. This is a hypothesis only.</div></li>
+  <li><input type="checkbox" aria-label="confirmed"><div>Target F capacities will be in the same Azure regions as the current P capacities.</div></li>
+  <li><input type="checkbox" aria-label="confirmed"><div>Manulife buys P capacities under an Enterprise Agreement, so Microsoft&rsquo;s EA renewal rules apply.</div></li>
+  <li><input type="checkbox" aria-label="confirmed"><div>Your team can get Fabric/Power BI admin rights (or a service principal with Tenant.Read.All) for inventory work.</div></li>
+  <li><input type="checkbox" aria-label="confirmed"><div>&ldquo;Manulife - P to F SKU Information.pdf&rdquo; holds the P&rarr;F mapping or pricing. I couldn&rsquo;t read it, so check it against the sizing rubric above.</div></li>
+  <li><input type="checkbox" aria-label="confirmed"><div>The wave percentages and dates in the timeline are my suggestions, not agreed commitments.</div></li>
+</ul>
+
+<!-- ================= 7. CONTEXT LOG ================= -->
+<h2 id="context">Context log</h2>
+<p class="muted">Additional context will be added here as it&rsquo;s provided.</p>
+
+</main>
+<footer>Last updated 2026-10-08</footer>
+</body>
+</html>

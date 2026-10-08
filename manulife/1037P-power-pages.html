@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power Pages Guide</title>
+<style>
+:root{
+  --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#475569; --border:#e2e8f0;
+  --accent:#0f766e; --accent-soft:#ccfbf1; --accent-text:#ffffff;
+  --must:#b91c1c; --must-soft:#fee2e2;
+  --aw:#1d4ed8; --aw-soft:#dbeafe; --wk:#a16207; --wk-soft:#fef3c7; --ex:#7e22ce; --ex-soft:#f3e8ff;
+  --code:#f1f5f9;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b1220; --surface:#111a2b; --text:#e2e8f0; --muted:#94a3b8; --border:#1e293b;
+    --accent:#2dd4bf; --accent-soft:#134e4a; --accent-text:#042f2e;
+    --must:#fca5a5; --must-soft:#450a0a;
+    --aw:#93c5fd; --aw-soft:#172554; --wk:#fcd34d; --wk-soft:#422006; --ex:#d8b4fe; --ex-soft:#3b0764;
+    --code:#1e293b;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-wrap:break-word}
+a{color:var(--accent)}
+nav.top{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--border)}
+nav.top ul{list-style:none;margin:0 auto;padding:8px 16px;max-width:860px;display:flex;gap:4px 14px;flex-wrap:wrap;font-size:13px}
+nav.top a{text-decoration:none;color:var(--muted);font-weight:600}
+nav.top a:hover{color:var(--accent)}
+main{max-width:860px;margin:0 auto;padding:16px}
+header.hero{border-left:4px solid var(--accent);padding:4px 0 4px 16px;margin:16px 0 8px}
+h1{font-size:1.7rem;line-height:1.25;margin:0 0 6px}
+h2{font-size:1.3rem;margin:40px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
+h3{font-size:1.05rem;margin:24px 0 8px;color:var(--accent)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;font-size:14px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--accent-soft);color:var(--text);font-size:13px;font-weight:600}
+.pill.status{background:var(--accent);color:var(--accent-text)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:12px 0}
+ul.checks{list-style:none;padding:0;margin:8px 0}
+ul.checks li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border)}
+ul.checks li:last-child{border-bottom:0}
+ul.checks input{margin-top:5px;accent-color:var(--accent);flex:none;width:16px;height:16px}
+.out{display:block;font-size:13px;color:var(--muted)}
+.out b{color:var(--accent)}
+.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:1px 8px;border-radius:999px;vertical-align:middle;margin-right:4px}
+.must{background:var(--must-soft);color:var(--must);border:1px solid var(--must)}
+.aw{background:var(--aw-soft);color:var(--aw)} .wk{background:var(--wk-soft);color:var(--wk)} .ex{background:var(--ex-soft);color:var(--ex)}
+.q{padding:10px 0;border-bottom:1px dashed var(--border)}
+.q:last-child{border-bottom:0}
+.q .why{display:block;font-size:14px;color:var(--muted);margin-top:2px}
+details{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:10px 0;padding:0 16px}
+details[open]{padding-bottom:10px}
+summary{cursor:pointer;font-weight:700;padding:12px 0}
+.learn{padding:12px 0;border-bottom:1px dashed var(--border)}
+.learn:last-child{border-bottom:0}
+.learn .t{font-weight:700}
+.learn p{margin:4px 0;font-size:15px}
+.learn .links{font-size:14px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.88em}
+.note{font-size:14px;color:var(--muted)}
+.flag{display:inline-block;font-size:11px;font-weight:700;padding:0 6px;border-radius:4px;background:var(--wk-soft);color:var(--wk);margin-right:4px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.tablewrap{overflow-x:auto}
+#context-log .placeholder{font-style:italic;color:var(--muted)}
+footer{max-width:860px;margin:40px auto 0;padding:16px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+@media (max-width:520px){h1{font-size:1.4rem} h2{font-size:1.15rem}}
+</style>
+</head>
+<body>
+<nav class="top" aria-label="Sections">
+  <ul>
+    <li><a href="#top">Overview</a></li>
+    <li><a href="#do">Do</a></li>
+    <li><a href="#ask">Ask</a></li>
+    <li><a href="#learn">Learn</a></li>
+    <li><a href="#risks">Risks</a></li>
+    <li><a href="#assumptions">Assumptions</a></li>
+    <li><a href="#context-log">Context log</a></li>
+  </ul>
+</nav>
+
+<main>
+<header class="hero" id="top">
+  <h1>#1037P — Power Pages: operationalize as a supported service</h1>
+  <div class="meta">
+    <span class="pill status">Status: Exploratory</span>
+    <span class="pill">Owner: Sahar Abdoli Kasmaei (Solution Architect, ETS Power Platform)</span>
+    <a class="pill" href="https://github.com/Sahar-Abdoli/PowerPlatformAgent/issues/1">GitHub issue #1</a>
+  </div>
+  <p><strong>In plain language:</strong> Manulife doesn't offer Power Pages (Microsoft's low-code website product) as a supported service today. This task designs how it would be offered: who owns it, who can ask for a site, how a site is approved and secured, how it sits behind Akamai, how its Entra app registrations get created (ideally automatically), how environments and production releases work, and who supports it afterwards. The outcome is an approved service model, governance, and a roadmap, so that Segment IT teams can build and run their own sites safely. SinoChem's specific requirements are out of scope.</p>
+  <p><strong>Your likely role:</strong> design authority and facilitator. You own the target operating model and the technical reference architecture (edge/Akamai, identity, environments, ALM). You coordinate decisions from InfoSec, Network, Identity and Segment IT. You don't build individual sites.</p>
+</header>
+
+<!-- ===================== DO ===================== -->
+<section id="do">
+<h2>What you should do</h2>
+<p class="note">Prioritized and phased. Tick items off as you go (the checkboxes don't save). Each item names the artifact it should produce.</p>
+
+<h3>First 2 weeks: frame the problem and unblock the big unknowns</h3>
+<div class="card"><ul class="checks">
+  <li><input type="checkbox" aria-label="done"><div>Inventory what already exists. Find any Power Pages or legacy Power Apps portal sites in the tenant: Power Platform admin center → Resources → Power Pages sites, plus the CoE Starter Kit inventory if it's deployed. Record each site's environment, owner, visibility (private/public), data model (standard/enhanced), auth providers, custom domain and whether anonymous table permissions exist.
+    <span class="out"><b>Output:</b> current-state site inventory (spreadsheet), including "shadow" trial sites.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Snapshot the tenant governance settings that already apply: whether non-admins can create sites (<code>disablePortalsCreationByNonAdminUsers</code>), the "site visibility" and "disable anonymous access" governance controls, "enable external authentication providers", Managed Environments status, and DLP policies on the target environments.
+    <span class="out"><b>Output:</b> "control baseline" table showing each setting, its current value and the proposed value.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Book the 5 must-ask conversations (see <a href="#ask">What you should ask</a>), starting with InfoSec and the Akamai/network team. The Akamai pattern is the biggest technical unknown and drives the hosting design.
+    <span class="out"><b>Output:</b> stakeholder map (RACI draft) and meeting notes.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Get at least two real candidate use cases from Segment IT leads: one internal (employees or advisors on Entra ID) and one external (customers or partners). Use them to test every design decision.
+    <span class="out"><b>Output:</b> 1-page use-case cards (audience, data sensitivity, identity, volume, deadline).</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Stand up a sandbox site in a non-production environment to learn the controls hands-on: site visibility, Entra ID sign-in, table permissions, WAF/IP restriction options (some need production state), and the Security agent (preview).
+    <span class="out"><b>Output:</b> lab notes with screenshots, which seed the Phase 2 runbooks.</span></div></li>
+</ul></div>
+
+<h3>Phase 1 — Discovery</h3>
+<div class="card"><ul class="checks">
+  <li><input type="checkbox" aria-label="done"><div>Write the current-state assessment covering existing sites, current controls, licensing/capacity position (authenticated and anonymous capacity packs, or none), and who holds which admin roles today.
+    <span class="out"><b>Output:</b> Current-State Assessment doc.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Define <strong>site risk tiers</strong>. Proposed: T1 internal-only (Entra workforce, private); T2 external authenticated (customers or partners via Entra External ID or another OIDC IdP); T3 anonymous/public with Dataverse data exposed. Each tier sets the approvals, security review depth, identity options and support level.
+    <span class="out"><b>Output:</b> risk-tier matrix, reviewed with InfoSec and Risk.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Run an <strong>Akamai integration proof of concept</strong> on the sandbox: Akamai property pointed at the Power Pages origin, Host-header behaviour, custom-domain binding and validation (Power Pages needs a publicly resolvable CNAME), sign-in redirect URIs, cookies, caching rules, and locking the origin to Akamai (Power Pages IP restriction against Akamai egress ranges). Also decide whether the built-in Power Pages WAF/CDN (Azure Front Door based) is switched off or layered underneath.
+    <span class="out"><b>Output:</b> Akamai reference architecture plus PoC test results (pass/fail per check).</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Map the app registrations each pattern needs: Entra ID workforce sign-in (OIDC, one per site/environment, with reply URL on the site host), Entra External ID (registration in the external tenant), plus optional integrations (SharePoint document management, Power BI embedding, server-side calls to APIs). Note the secret/certificate owner and rotation for each.
+    <span class="out"><b>Output:</b> app-registration catalogue (purpose, tenant, redirect URIs, permissions, credential type, rotation owner).</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Capture the security requirements (pen test, OWASP checks, logging to SIEM, data classification, privacy/PIA) and the compliance requirements (accessibility, regional data residency, records retention). Gap them against what Power Pages provides natively.
+    <span class="out"><b>Output:</b> security and governance requirements register, plus a readiness-gap list.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>List the integrations and dependencies: Dataverse environments, DLP, ServiceNow (or whatever tool handles requests and incidents), DNS, certificate management, SIEM, and identity.
+    <span class="out"><b>Output:</b> dependency map (one diagram).</span></div></li>
+</ul></div>
+
+<h3>Phase 2 — Service design</h3>
+<div class="card"><ul class="checks">
+  <li><input type="checkbox" aria-label="done"><div>Define the target operating model. I'd recommend starting <strong>assisted</strong>: Segment IT builds; ETS owns the platform, environments, domain/Akamai, app registrations and the production deployment gate. Allow <strong>self-service</strong> later, only for T1 sites. Keep <strong>managed</strong> (ETS-run) as an exception for T3.
+    <span class="out"><b>Output:</b> Target Operating Model, with a RACI per lifecycle stage (request → build → review → deploy → run → retire).</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Design the environment pattern: a dev/test/prod set per Segment (or per site for T3), Managed Environments on, enhanced data model only, and site creation restricted to admins or provisioning automation.
+    <span class="out"><b>Output:</b> environment strategy and naming convention.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Design ALM: sites live in solutions (enhanced data model), deploy via Power Platform pipelines into production, with no direct maker access in prod. Table permissions and site settings travel in the solution; environment-specific values (client IDs, domains) go in environment variables or deployment settings.
+    <span class="out"><b>Output:</b> ALM and release standard, including the production change gate.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Write the onboarding package for Segment IT: request form fields, prerequisites (licensing/capacity, data owner, InfoSec intake), a training path, a site build checklist (table permissions, web roles, no anonymous Dataverse data unless approved, security headers) and a go-live checklist.
+    <span class="out"><b>Output:</b> Segment IT Onboarding Guide plus checklists.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Define the support model: L1/L2/L3 split, the Microsoft support path, monitoring (capacity reports, Security agent scans, Akamai/WAF logs to SIEM), secret/cert expiry alerts, and incident runbooks (site down, auth broken, WAF false positive, data exposure).
+    <span class="out"><b>Output:</b> Support Model plus runbooks.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Specify the automation requirements: environment provisioning, app-registration creation and rotation, Akamai property/DNS request, IP-restriction sync, and governance scans. See "Reuse from PPOps" below.
+    <span class="out"><b>Output:</b> automation backlog with effort/value scoring.</span></div></li>
+</ul></div>
+
+<h3>Phase 3 — Implementation planning</h3>
+<div class="card"><ul class="checks">
+  <li><input type="checkbox" aria-label="done"><div>Build the roadmap: MVP (assisted, T1 plus one T2 pilot), then hardening (automation, SIEM), then scale (self-service T1, more segments).
+    <span class="out"><b>Output:</b> roadmap with dates and dependencies, for approval.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Prioritize the automation by toil removed and risk reduced. Likely order: (1) app registration plus site-settings generation, (2) environment provisioning, (3) governance scan/report, (4) secret-expiry alerting, (5) Akamai/DNS request integration.
+    <span class="out"><b>Output:</b> prioritized automation backlog.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Plan the rollout: pilot with one Segment IT team, run a retrospective, then a wider launch. Set the policy for existing sites (migrate, re-platform or decommission).
+    <span class="out"><b>Output:</b> rollout and communications plan.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Define success metrics, for example: time from request to dev environment; time to production; % of sites with no anonymous Dataverse access; 0 expired auth secrets; Security-agent findings closed within SLA; number of Segment IT teams onboarded.
+    <span class="out"><b>Output:</b> KPI sheet plus dashboard spec.</span></div></li>
+  <li><input type="checkbox" aria-label="done"><div>Take the service model, governance and roadmap to the approval forum, and get sign-off against each success criterion in the issue.
+    <span class="out"><b>Output:</b> approval record mapped to the issue's 7 success criteria.</span></div></li>
+</ul></div>
+
+<details>
+  <summary>Reuse from PPOps (your toolkit at /home/user/powerplatformagent)</summary>
+  <p>Opportunities I can see from the code that actually exists. PPOps doesn't cover any of these today; each would be an extension.</p>
+  <ul>
+    <li><strong>App-registration automation template.</strong> <code>src/PPOps.Auth/AppRegistration.cs</code> already generates a manifest, an admin-consent URL and an <code>az</code> script that resolves permission IDs from the resource service principal at run time instead of hard-coding them. A <code>pages register-site-app</code> variant could reuse that pattern. It would need a different app shape: a <em>web/confidential</em> client with the site's OIDC reply URL (not the public client PPOps uses), a certificate or secret, and the matching Power Pages site settings emitted for the solution or deployment settings.</li>
+    <li><strong>Governance checks via the Doctor pattern.</strong> <code>src/PPOps.Admin/Doctor.cs</code> (capability report with checks and compact tables) and <code>Dlp.cs</code> (policy evaluation per environment) are a good base for a "Power Pages posture" scan, e.g. sites with anonymous table permissions, public non-prod sites, sites without a custom domain behind Akamai, or auth secrets near expiry.</li>
+    <li><strong>Environment inventory.</strong> <code>BapAdmin.ListEnvironmentsAsync</code> / <code>PowerPlatformAdmin</code> in <code>AdminClients.cs</code> can feed the Phase 1 inventory.</li>
+    <li><strong>Human-gated production changes.</strong> PPOps's plan → approve → apply → verify → rollback model fits the ETS production gate for site-setting or IP-restriction changes.</li>
+  </ul>
+  <p class="note"><span class="flag">Limit</span>The Power Pages admin API (used for things like IP allow-lists and WAF rules) documents that the service-principal flow isn't currently supported. Fully unattended automation of those settings may not be possible yet, so check this before you commit to it.</p>
+</details>
+</section>
+
+<!-- ===================== ASK ===================== -->
+<section id="ask">
+<h2>What you should ask</h2>
+<p class="note">Grouped by who to ask. <span class="badge must">Must-ask</span> marks the five to ask first, because they unblock the most downstream decisions.</p>
+
+<details open>
+  <summary>InfoSec / Security architecture</summary>
+  <div class="q"><span class="badge must">Must-ask</span> Is an externally facing, Microsoft-hosted SaaS website (Power Pages) acceptable for external customers or partners at all? If yes, what's the minimum security review per risk tier (threat model, pen test, DAST)?
+    <span class="why">This decides whether T2/T3 are in scope for MVP and sets the approval workflow.</span></div>
+  <div class="q">Must all internet-facing sites sit behind Akamai, or is Microsoft's built-in WAF (Azure Front Door based) acceptable for some tiers?
+    <span class="why">If Akamai is mandatory, the PoC is on the critical path. If not, T1 can launch sooner.</span></div>
+  <div class="q">What logs must reach the SIEM (Akamai/WAF, sign-in, Dataverse audit), and within what latency?
+    <span class="why">This feeds the monitoring design and Dataverse auditing settings.</span></div>
+  <div class="q">Can anonymous visitors ever read Dataverse data? Should "disable anonymous access" be tenant-wide by default, with exceptions?
+    <span class="why">This sets the default governance control and the exception process.</span></div>
+  <div class="q">What are the standards for client secrets vs certificates on app registrations, and the rotation period?
+    <span class="why">This drives the app-registration automation design and expiry monitoring.</span></div>
+</details>
+
+<details open>
+  <summary>Network / Akamai team</summary>
+  <div class="q"><span class="badge must">Must-ask</span> What's the standard pattern for putting a third-party SaaS origin behind Akamai? Specifically: Host-header forwarding, origin TLS validation, SiteShield or a fixed egress IP list we can allow-list in Power Pages IP restriction, and how domain-validation CNAME/TXT records are handled when the public CNAME points to Akamai.
+    <span class="why">This is the core of the "Akamai approach defined" success criterion. Microsoft documents Azure Front Door, not Akamai, so you need the network team's pattern and a PoC.</span></div>
+  <div class="q">Which caching and bot-management rules apply by default? Can we exclude authenticated paths, sign-in endpoints (<code>/signin-*</code>), and the Power Pages Web API (<code>/_api/</code>)?
+    <span class="why">Caching personalised content or blocking sign-in callbacks are classic breakages.</span></div>
+  <div class="q">Who owns DNS and certificates for Manulife domains, and what's the lead time for a new hostname and certificate?
+    <span class="why">This sets the onboarding SLA. Power Pages custom domains need a cert (PFX) unless managed differently.</span></div>
+  <div class="q">Are there private-connectivity needs (sites calling on-prem APIs)?
+    <span class="why">This decides whether you need gateways, Azure API Management or VNet patterns.</span></div>
+</details>
+
+<details open>
+  <summary>Entra / Identity team</summary>
+  <div class="q"><span class="badge must">Must-ask</span> What's the approved identity provider for external users: Entra External ID (an external tenant), an existing customer IAM platform, or something else? Does Manulife already run an external tenant?
+    <span class="why">This decides the T2 identity pattern and which tenant app registrations live in.</span></div>
+  <div class="q">Will Identity allow ETS (or an automation service principal) to create app registrations, with a scoped role such as Application Developer plus owner assignment, or must each one go through a ticket?
+    <span class="why">This decides whether "app registration automation" means full automation or a generated request package.</span></div>
+  <div class="q">What are the naming, ownership and Conditional Access policies for app registrations used by websites (MFA for employees, guest access)?
+    <span class="why">This feeds the governance doc and the automation template.</span></div>
+</details>
+
+<details open>
+  <summary>Power Platform CoE / ETS leadership</summary>
+  <div class="q"><span class="badge must">Must-ask</span> Who owns the Power Pages service: ETS end to end, or ETS for the platform and Segment IT for the sites? What funding model applies to capacity (authenticated and anonymous packs, or pay-as-you-go per environment)?
+    <span class="why">This is the ownership and cost model. Without it the service model can't be approved.</span></div>
+  <div class="q">Which approval forum signs off the service model and roadmap, and what format does it expect?
+    <span class="why">This gives you the approval path for the success criteria.</span></div>
+  <div class="q">Are Managed Environments and pipelines already the standard for other Power Platform workloads? Is there a provisioning process to extend?
+    <span class="why">Reusing what exists cuts the work significantly.</span></div>
+  <div class="q">Can we restrict site creation tenant-wide now, before the service exists?
+    <span class="why">This stops more shadow sites appearing during discovery.</span></div>
+</details>
+
+<details open>
+  <summary>Segment IT leads</summary>
+  <div class="q"><span class="badge must">Must-ask</span> What sites do you actually want to build in the next 12 months? Who are the users (employees, advisors, customers, partners), what data do they touch, and what's the deadline?
+    <span class="why">Real demand sizes the MVP and the self-service vs assisted split, and gives you pilot candidates.</span></div>
+  <div class="q">What Power Platform and web skills do your teams have (Liquid, JavaScript, Dataverse security)? Can you staff L1/L2 support for your own sites?
+    <span class="why">This decides how much ETS has to own, and what training goes in onboarding.</span></div>
+  <div class="q">Do you have existing Power Apps portals or other sites you'd expect to move?
+    <span class="why">This sets migration scope (standard → enhanced data model).</span></div>
+</details>
+
+<details open>
+  <summary>Compliance / Risk / Privacy</summary>
+  <div class="q">Which regulations apply to externally facing sites per jurisdiction (privacy notices, cookie consent, accessibility such as WCAG/AODA, records retention, data residency)?
+    <span class="why">These become go-live checklist items and may limit which Dataverse regions can host sites.</span></div>
+  <div class="q">Is a privacy impact assessment or a third-party/vendor risk assessment needed once for the service, or per site?
+    <span class="why">This sets per-site onboarding lead time.</span></div>
+  <div class="q">What risk-acceptance process applies to preview features (e.g. the Security agent) and to Microsoft-managed WAF rules you can't fully see?
+    <span class="why">This decides which Microsoft controls you can rely on vs only use as extra protection.</span></div>
+</details>
+
+<details>
+  <summary>Microsoft (account team / FastTrack / support), if available</summary>
+  <div class="q">Is running Power Pages behind a third-party CDN/WAF (Akamai) with a custom domain supported? Are there known issues with Host headers, domain validation or IP restriction seeing the client IP vs the edge IP?
+    <span class="why">This gets a supportability statement on record before you commit to the architecture.</span></div>
+  <div class="q">What's the roadmap for service-principal support in the Power Pages admin API?
+    <span class="why">This determines whether IP/WAF configuration can be automated unattended.</span></div>
+</details>
+</section>
+
+<!-- ===================== LEARN ===================== -->
+<section id="learn">
+<h2>What you need to learn</h2>
+<p class="note">In priority order. Depth: <span class="badge aw">Awareness</span> know it exists and its limits · <span class="badge wk">Working</span> can configure and explain it · <span class="badge ex">Expert</span> can design it and defend it to InfoSec.</p>
+<div class="card">
+
+<div class="learn"><span class="badge ex">Expert</span><span class="t">1. Edge security: built-in WAF/CDN (Azure Front Door) vs Akamai, plus IP restriction</span>
+<p>This is the hardest design question in the task. Power Pages' own WAF runs on Azure Front Door and works in Prevention mode with managed rules. Microsoft's documented "bring your own edge" pattern is Azure Front Door, not Akamai. IP restriction (public IPs only, static 403 page) is the main way to force traffic through your edge.</p>
+<p class="links"><a href="https://learn.microsoft.com/en-us/power-pages/security/web-application-firewall">WAF for Power Pages</a> · <a href="https://learn.microsoft.com/en-us/power-pages/configure/azure-front-door">Set up Azure Front Door with Power Pages</a> · <a href="https://learn.microsoft.com/en-us/power-pages/admin/ip-address-restrict">Restrict website access by IP address</a> · <a href="https://learn.microsoft.com/en-us/power-pages/admin/add-custom-domain">Add a custom domain name</a></p></div>
+
+<div class="learn"><span class="badge ex">Expert</span><span class="t">2. Authentication and app registrations</span>
+<p>You need this to define which app registrations exist and whether they can be automated. Learn the OIDC provider settings (client ID, reply URL, secret in site settings), Entra ID for workforce, and Entra External ID for customers (the setup wizard was reworked in 2025). Note that Azure AD B2C is no longer the default choice for new customer identity; check its sales status with Identity.</p>
+<p class="links"><a href="https://learn.microsoft.com/en-us/power-pages/security/authentication/openid-settings">OpenID Connect provider settings</a> · <a href="https://learn.microsoft.com/power-pages/security/authentication/entra-external-id">Microsoft Entra External ID with Power Pages</a> · <a href="https://learn.microsoft.com/en-us/power-platform/release-plan/2025wave1/power-pages/set-up-entra-external-id-wizard">2025 wave 1: External ID setup wizard</a></p></div>
+
+<div class="learn"><span class="badge ex">Expert</span><span class="t">3. Tenant governance controls for Power Pages</span>
+<p>These controls are the core of the governance document. Sites are private by default. Admin governance controls cover site visibility for non-production sites, disabling anonymous access to Dataverse data, and external authentication providers. Site creation by non-admins is blocked via a PowerShell tenant setting.</p>
+<p class="links"><a href="https://learn.microsoft.com/power-pages/security/site-visibility">Site visibility</a> · <a href="https://learn.microsoft.com/en-us/power-pages/security/disable-anonymous-access">Governance control: disable anonymous access</a> · <a href="https://learn.microsoft.com/en-us/power-pages/admin/control-site-creation">Control site creation</a> · <a href="https://learn.microsoft.com/en-us/power-pages/admin/coe-portals">Power Pages governance (CoE)</a></p></div>
+
+<div class="learn"><span class="badge wk">Working</span><span class="t">4. Data security model: table permissions, web roles, column permissions</span>
+<p>Most real data exposures come from this layer: a Global-scope permission tied to the Anonymous role. Your build checklist and security review depend on it. Remember that rights add up across roles and can't be reduced by another role.</p>
+<p class="links"><a href="https://learn.microsoft.com/power-pages/security/table-permissions">Configuring table permissions</a> · <a href="https://learn.microsoft.com/en-us/training/modules/power-pages-configure-security/table-permissions">Learn module: table permissions</a></p></div>
+
+<div class="learn"><span class="badge wk">Working</span><span class="t">5. ALM: enhanced data model, solutions, pipelines, PAC CLI</span>
+<p>This is needed for the production deployment process. Solution-based ALM and pipelines only work for enhanced-data-model sites (the default for new sites since 2023). Migrating standard → enhanced is via <code>pac pages migrate-datamodel</code> (preview).</p>
+<p class="links"><a href="https://learn.microsoft.com/power-pages/admin/enhanced-data-model">Enhanced data model</a> · <a href="https://learn.microsoft.com/en-us/power-Pages/admin/migrate-enhanced-data-model">Migrate to enhanced data model</a> · <a href="https://learn.microsoft.com/en-us/power-pages/configure/power-platform-cli-tutorial">Power Platform CLI tutorial for Power Pages</a> · <a href="https://learn.microsoft.com/en-us/training/modules/create-pipeline">Learn module: create a pipeline</a></p></div>
+
+<div class="learn"><span class="badge wk">Working</span><span class="t">6. Managed Environments and environment strategy</span>
+<p>This is the provisioning approach and the governance base. It covers environment groups, rules, and delegated admin.</p>
+<p class="links"><a href="https://learn.microsoft.com/power-platform/admin/managed-governance">Managed governance overview</a></p></div>
+
+<div class="learn"><span class="badge wk">Working</span><span class="t">7. Licensing and capacity</span>
+<p>This drives the funding and chargeback model. Capacity comes as authenticated and anonymous packs or pay-as-you-go, set per environment. Internal users with Power Apps or Dynamics 365 licences may not need capacity. Monitor with the consumption reports.</p>
+<p class="links"><a href="https://learn.microsoft.com/en-nz/power-pages/admin/website-consumption-reports">Website capacity consumption reports</a> · <a href="https://www.microsoft.com/en-ca/power-platform/products/power-pages/pricing">Power Pages pricing</a></p></div>
+
+<div class="learn"><span class="badge aw">Awareness</span><span class="t">8. Security agent (preview) and admin API</span>
+<p>Candidate inputs to operations. The Security agent runs scheduled OWASP-ZAP-based scans and traffic monitoring; it's in preview, so treat it as extra, not a control InfoSec relies on. The admin API covers IP allow-list and WAF operations, but doesn't currently support service principals.</p>
+<p class="links"><a href="https://learn.microsoft.com/en-us/power-pages/security/security-agent">Security agent</a> · <a href="https://learn.microsoft.com/en-us/power-pages/admin/admin-api">Power Pages admin API</a></p></div>
+
+</div>
+<details>
+  <summary>Recent changes worth knowing (as of Oct 2026)</summary>
+  <ul>
+    <li><strong>Private by default:</strong> new sites are private (Entra sign-in for makers' invited users). Non-production sites can only go public if admins allow it via the site-visibility governance control (default "None").</li>
+    <li><strong>Security agent</strong> (preview) in the design studio succeeds the earlier Security Checker/Meter preview. Its documented scope has grown to authentication, authorization and header reviews, with fixes that need approval. Check which one your tenant shows.</li>
+    <li><strong>Entra External ID setup wizard</strong> built into Power Pages (2025 release wave 1). Older step-by-step blog posts are out of date.</li>
+    <li><strong>Enhanced data model</strong> is the default. No end-of-support date for the standard model has been announced, but solution/pipeline ALM requires enhanced, so make it mandatory for the new service.</li>
+    <li><strong>WAF and CDN</strong> are separate toggles, both on Azure Front Door. CDN custom-domain TXT validation must be completed within 7 days of enabling.</li>
+  </ul>
+</details>
+</section>
+
+<!-- ===================== RISKS ===================== -->
+<section id="risks">
+<h2>Risks &amp; watch-outs</h2>
+<div class="card"><ul>
+  <li><strong>Akamai in front of a SaaS origin you don't control.</strong> Power Pages routes by host name and generates absolute URLs and sign-in redirects from it. If Akamai forwards the wrong Host header, sign-in loops and broken links follow. Also, custom-domain validation expects a public CNAME to the Power Pages host, which conflicts with the CNAME pointing at Akamai. Prove this in the PoC before you promise dates.</li>
+  <li><strong>The edge can be bypassed.</strong> The <code>*.powerappsportals.com</code> host stays reachable unless you restrict it. Plan IP restriction to Akamai egress ranges, and confirm whether IP restriction evaluates the edge IP or a forwarded client IP.</li>
+  <li><strong>Two WAFs/CDNs stacked</strong> (Akamai plus Power Pages WAF/CDN) cause double caching, confusing false positives, and two rule sets to tune. Choose one primary deliberately.</li>
+  <li><strong>Caching personalised pages.</strong> Akamai rules must not cache authenticated content or <code>/_api/</code> responses.</li>
+  <li><strong>Anonymous data exposure.</strong> A Global-scope table permission on the Anonymous role is the most common real-world leak. Default "disable anonymous access" on, with exceptions approved.</li>
+  <li><strong>Expiring client secrets</strong> on site identity providers take a site's sign-in down silently. Prefer certificates or managed rotation, and alert on expiry.</li>
+  <li><strong>Automation ceiling.</strong> The admin API doesn't support service principals, and app-registration rights may stay with Identity. "Automation" may end up as generated request packages plus approvals, so set expectations early.</li>
+  <li><strong>Shadow sites:</strong> trial sites created before governance lands. Restrict creation now and include them in the inventory.</li>
+  <li><strong>Capacity cost surprises.</strong> Anonymous and authenticated capacity is per environment and can't be swapped between the two types. Pay-as-you-go costs more per user. Agree chargeback before onboarding.</li>
+  <li><strong>Over-relying on preview features</strong> (Security agent, migration tool). Keep them as extras, not controls InfoSec depends on.</li>
+  <li><strong>Scope creep into SinoChem or individual site builds.</strong> Both are explicitly out of scope; log them and park them.</li>
+</ul></div>
+</section>
+
+<!-- ===================== ASSUMPTIONS ===================== -->
+<section id="assumptions">
+<h2>Assumptions</h2>
+<p class="note">I inferred these; they're not stated in the issue. Please confirm or correct each one.</p>
+<div class="card"><ul>
+  <li><span class="flag">Confirm</span>Akamai is Manulife's mandated edge/CDN/WAF for internet-facing sites, and a network team operates it.</li>
+  <li><span class="flag">Confirm</span>Microsoft Entra ID is the workforce identity provider, and a separate team owns app registrations and Conditional Access.</li>
+  <li><span class="flag">Confirm</span>ETS Power Platform holds Power Platform admin rights for the tenant and will be the service owner.</li>
+  <li><span class="flag">Confirm</span>"Segment IT" means business-segment IT teams with some low-code and web skills, who will build and support their own sites.</li>
+  <li><span class="flag">Confirm</span>Managed Environments and Power Platform pipelines are available (licensed) in the tenant.</li>
+  <li><span class="flag">Confirm</span>Requests and incidents are handled in an ITSM tool. I've assumed ServiceNow; it's not named in the issue.</li>
+  <li><span class="flag">Confirm</span>There's no existing Power Pages capacity purchase, so funding is still open.</li>
+  <li><span class="flag">Confirm</span>"App registration automation" refers to the Entra apps that sites need for sign-in and integrations, not the PPOps tooling app.</li>
+  <li><span class="flag">Confirm</span>Both internal (employee/advisor) and external (customer/partner) sites are in scope for the service model, even if the MVP starts internal.</li>
+</ul></div>
+</section>
+
+<!-- ===================== CONTEXT LOG ===================== -->
+<section id="context-log">
+<h2>Context log</h2>
+<div class="card">
+  <p class="placeholder">Additional context will be added here as it's provided.</p>
+  <!-- Append entries below as: <div class="q"><strong>YYYY-MM-DD — source</strong><span class="why">note</span></div> -->
+</div>
+</section>
+</main>
+
+<footer>Last updated 2026-10-08</footer>
+</body>
+</html>

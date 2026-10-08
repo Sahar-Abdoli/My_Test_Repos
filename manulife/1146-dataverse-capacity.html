@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dataverse Capacity Guide</title>
+<meta name="description" content="Personal coworker guide for #1146: reducing Dataverse database and file capacity in Cdn Seg Robotics Prod (flowsession, principalobjectaccess) with scheduled bulk delete jobs.">
+<style>
+:root{
+  --bg:#fbfaf8; --surface:#ffffff; --surface-2:#f4f2ee; --text:#1c1917; --muted:#57534e; --border:#e7e5e4;
+  --accent:#b45309; --accent-soft:#fef3c7; --accent-text:#7c2d12;
+  --danger:#b91c1c; --danger-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --info:#1d4ed8; --info-soft:#dbeafe;
+  --code-bg:#f5f5f4;
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f0e0d; --surface:#1a1816; --surface-2:#24211e; --text:#f5f5f4; --muted:#a8a29e; --border:#3a3633;
+    --accent:#fbbf24; --accent-soft:#3b2a0a; --accent-text:#fde68a;
+    --danger:#f87171; --danger-soft:#3b1414; --ok:#4ade80; --ok-soft:#10301c; --info:#93c5fd; --info-soft:#172554;
+    --code-bg:#1f1d1b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f0e0d; --surface:#1a1816; --surface-2:#24211e; --text:#f5f5f4; --muted:#a8a29e; --border:#3a3633;
+  --accent:#fbbf24; --accent-soft:#3b2a0a; --accent-text:#fde68a;
+  --danger:#f87171; --danger-soft:#3b1414; --ok:#4ade80; --ok-soft:#10301c; --info:#93c5fd; --info-soft:#172554;
+  --code-bg:#1f1d1b;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:56px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+nav.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--border)}
+nav.top .wrap{display:flex;gap:4px;overflow-x:auto;white-space:nowrap;padding-top:8px;padding-bottom:8px;scrollbar-width:none}
+nav.top a{font-size:13px;color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:999px}
+nav.top a:hover{color:var(--accent);background:var(--accent-soft)}
+header{padding:32px 0 8px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:clamp(24px,5vw,32px);line-height:1.2;margin:6px 0 8px}
+h2{font-size:22px;margin:44px 0 12px;padding-top:8px;border-top:2px solid var(--accent)}
+h3{font-size:17px;margin:24px 0 8px}
+p{margin:8px 0}
+a{color:var(--accent)}
+.lead{color:var(--muted);font-size:17px}
+.meta{font-size:14px;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}
+.tile .num{font-size:24px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.tile .lbl{font-size:13px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:12px 0}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);color:var(--text);border-radius:6px;padding:10px 14px;margin:12px 0}
+.callout.danger{border-color:var(--danger);background:var(--danger-soft)}
+.callout.info{border-color:var(--info);background:var(--info-soft)}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:14px 0}
+.step h3{margin-top:0}
+.step .out{font-size:14px;color:var(--muted);border-top:1px dashed var(--border);margin-top:10px;padding-top:8px}
+.step .out b{color:var(--text)}
+ul.checks{list-style:none;padding-left:0;margin:6px 0}
+ul.checks li{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+ul.checks input{margin-top:5px;accent-color:var(--accent);flex:0 0 auto}
+.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 8px;border-radius:999px;vertical-align:middle;margin-right:4px;white-space:nowrap}
+.b-must{background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger)}
+.b-aw{background:var(--info-soft);color:var(--info)}
+.b-wk{background:var(--accent-soft);color:var(--accent-text)}
+.b-ex{background:var(--danger-soft);color:var(--danger)}
+.b-draft{background:var(--accent-soft);color:var(--accent-text);border:1px solid var(--accent)}
+.b-inf{background:var(--surface-2);color:var(--muted);border:1px solid var(--border)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:10px 0;border:1px solid var(--border);border-radius:8px;background:var(--code-bg)}
+pre{margin:0;padding:12px 14px;font-family:var(--mono);font-size:13px;line-height:1.5;color:var(--text)}
+code{font-family:var(--mono);font-size:.9em;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--surface)}
+th,td{border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-weight:600}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;margin:10px 0}
+.tablewrap table{min-width:560px}
+details{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;margin:10px 0}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:6px}
+.q{padding:10px 0;border-bottom:1px solid var(--border)}
+.q:last-child{border-bottom:none}
+.q .why{font-size:14px;color:var(--muted)}
+.learn{padding:10px 0;border-bottom:1px solid var(--border)}
+.learn:last-child{border-bottom:none}
+.learn .links{font-size:14px}
+.empty{border:2px dashed var(--border);border-radius:10px;padding:20px;color:var(--muted);text-align:center}
+footer{margin:48px 0 32px;padding-top:12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+ol.tight,ul.tight{padding-left:20px}
+ol.tight li,ul.tight li{margin:4px 0}
+</style>
+</head>
+<body>
+<nav class="top" aria-label="Sections">
+  <div class="wrap">
+    <a href="#top">Overview</a>
+    <a href="#do">Do</a>
+    <a href="#ask">Ask</a>
+    <a href="#learn">Learn</a>
+    <a href="#risks">Risks</a>
+    <a href="#assumptions">Assumptions</a>
+    <a href="#context">Context log</a>
+  </div>
+</nav>
+
+<main class="wrap">
+<header id="top">
+  <div class="eyebrow">Coworker guide · ETS Power Platform</div>
+  <h1>#1146: Dataverse database and file capacity usage, Cdn Seg Robotics Prod</h1>
+  <p class="meta">Issue: <a href="https://github.com/Sahar-Abdoli/PowerPlatformAgent/issues/3">Sahar-Abdoli/PowerPlatformAgent#3</a> · For: Sahar Abdoli Kasmaei (solution architect)</p>
+  <p class="lead">The robotics production environment keeps every desktop flow run it has ever recorded. Each run is a <code>flowsession</code> row. Under the default logging setup (Logs V1), the run's action log lives in a file column on that row, and that is where the 5.3 TB of file capacity sits. The job has two parts. First, agree how long run history must be kept (expected to be 1–4 weeks). Second, delete everything older on a schedule, safely. Unless logging is changed as well, the table will simply grow back.</p>
+
+  <div class="tiles" role="list">
+    <div class="tile" role="listitem"><div class="num">419 GB</div><div class="lbl">Dataverse database total</div></div>
+    <div class="tile" role="listitem"><div class="num">348 GB</div><div class="lbl">flowsessionbase (~83%)</div></div>
+    <div class="tile" role="listitem"><div class="num">61 GB</div><div class="lbl">principalobjectaccess</div></div>
+    <div class="tile" role="listitem"><div class="num">5.3 TB</div><div class="lbl">File capacity (flow session)</div></div>
+  </div>
+
+  <div class="card">
+    <b>Your role here.</b> You own the design and the decision record: the retention rule, the delete criteria, the job design, the run order and the risk sign-off. You don't need to be the person who clicks <em>Submit</em> in production. An environment admin with the Bulk Delete privilege can do that once you have approved the criteria. Your deliverable is a cleanup approach that is safe, repeatable and documented, plus evidence that capacity is trending down.
+  </div>
+</header>
+
+<!-- ========================= DO ========================= -->
+<section id="do">
+<h2>1. What you should do</h2>
+<p>The steps are in order. Each one ends with a concrete output, so you can tick progress off in stand-up.</p>
+
+<div class="callout danger"><b>Safety baseline (read first).</b> A bulk delete cannot be undone. If it fails partway, the rows it already deleted stay deleted; nothing rolls back. The only recovery path is <em>Keep deleted Dataverse records</em>, the environment recycle bin, which lasts 1–90 days and <em>keeps counting against storage</em>. The next fallback is an environment backup restore, which is all-or-nothing and not realistic in production. Treat every job as permanent.</div>
+
+<div class="step">
+  <h3>Step 1: Assess (read-only), days 1–3</h3>
+  <ul class="checks">
+    <li><input type="checkbox" aria-label="done"><span>In the Power Platform admin center (PPAC), open the capacity pages: <b>Licensing → Capacity → Dataverse → Cdn Seg Robotics Prod</b> (or the older Resources → Capacity view). Screenshot <b>Consumption per table</b> for Database <em>and</em> File, then open each table's trend. Microsoft shows up to the last 3 months of daily trend. This is your <b>baseline</b>.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Check which tables make up the 5.3 TB of file. Flow session has three file columns: <code>AdditionalContext</code> (the V1 action logs), <code>Inputs</code> and <code>Outputs</code>. File data can also appear under <code>workflowbinary</code> or <code>flowsessionbinary</code>, which hold run inputs and outputs and exception screenshots. Write down which table names PPAC actually shows.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Read the environment's <b>Settings → Product → Features → Desktop flow run action logs configuration</b> and record three values: <em>Activation status of run action logs</em>, <em>Action logs version</em> (V1, V2 or Both) and, if V2 is used, <em>FlowLogs entity time to live in minutes</em>. Record the <em>Action logs verbosity</em> too.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>On the same page, check <b>Deleted records → Keep deleted Dataverse records</b> and how many days it keeps. If it is on, deleted flow sessions keep using storage until that window ends, unless you tick <em>Permanent deletion</em>.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Profile the rows: count by <b>month of <code>completedon</code></b> × <b><code>statuscode</code></b>. Also count rows where <code>completedon</code> is null (sessions that are still running, stuck or orphaned). Use the per-month approach below, because aggregate FetchXML may hit Dataverse's aggregate row limit on a table this size.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Find the run volume per desktop flow (<code>regardingobjectid</code>) and per machine group for the last 30 days. Two or three high-frequency bots usually produce most of the growth. Those are the people to talk to first.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Look at <b>Settings → Data management → Bulk deletion → Recurring Bulk Deletion System Jobs</b>. A flowsession job may already exist and be failing. Note any failures in its <em>Run details</em> tab.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Check for plug-ins or cloud flows registered on Delete of <code>flowsession</code>. Bulk delete triggers them once for every row deleted.</span></li>
+  </ul>
+  <details>
+    <summary>Draft FetchXML for profiling (validate first)</summary>
+    <p><span class="badge b-draft">Draft · validate</span> Run one month at a time. Change the two dates for each month. A plain count per window stays small enough to return.</p>
+    <div class="scroll"><pre><code>&lt;fetch aggregate="true"&gt;
+  &lt;entity name="flowsession"&gt;
+    &lt;attribute name="flowsessionid" alias="runs" aggregate="count" /&gt;
+    &lt;attribute name="statuscode" alias="status" groupby="true" /&gt;
+    &lt;filter type="and"&gt;
+      &lt;condition attribute="completedon" operator="on-or-after"  value="2026-01-01" /&gt;
+      &lt;condition attribute="completedon" operator="before"       value="2026-02-01" /&gt;
+    &lt;/filter&gt;
+  &lt;/entity&gt;
+&lt;/fetch&gt;</code></pre></div>
+    <p class="meta">If a window still goes over the aggregate limit, split it by week, or use the Web API <code>RetrieveTotalRecordCount</code> function for a quick approximate total. Save every result into one table. That table becomes the "before" evidence for Step 6.</p>
+  </details>
+  <div class="out"><b>Output:</b> a baseline sheet with per-table DB and file GB, row counts by month and status, current log settings, recycle-bin setting, the top bots by volume, and any existing bulk delete jobs.</div>
+</div>
+
+<div class="step">
+  <h3>Step 2: Agree the retention rule, week 1</h3>
+  <ul class="checks">
+    <li><input type="checkbox" aria-label="done"><span>Put a one-page proposal to the RPA owners and to compliance. Flow session history (status, timing, errors and action logs) is kept for <b>N days after completion</b>. N is between 7 and 28, for example 28 days for failed runs and 14 days for successful runs.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Confirm that no audit or regulatory process uses flow session logs as its <em>system of record</em>. If one does, the evidence needs to move somewhere else (a business log table, Logs V2 with Synapse Link, or an export) <em>before</em> any deletion starts.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Decide which statuses are safe to delete. Only terminal states should be in scope. Rows that are Running, Waiting, Paused or Suspended must never be in scope.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Decide the logging change that stops regrowth. Options: (a) set <em>Activation status</em> to <b>On run failure</b>, (b) move to <b>Logs V2</b> with a TTL that matches the retention rule (this uses <em>log</em> capacity instead of <em>file</em> capacity), (c) lower the verbosity. Record who approved the choice.</span></li>
+  </ul>
+  <div class="out"><b>Output:</b> a signed-off retention decision (N days per status) and a logging-setting decision, both recorded in the issue.</div>
+</div>
+
+<div class="step">
+  <h3>Step 3: Build and test in a non-production environment, week 2</h3>
+  <ul class="checks">
+    <li><input type="checkbox" aria-label="done"><span>Use a dev or test robotics environment that has real desktop flow runs. If you need volume, ask the admins whether a copy of production can go to a sandbox. Weigh that against data-handling rules first.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Build the bulk delete query (draft below) in the Bulk Deletion wizard. Use <b>Preview records</b> and compare the count with your profiling numbers.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Run it once and check four things. Child rows are removed (file attachments, workflow and flow session binaries). Runs in progress are untouched. The desktop flow run history UI still shows the retained runs. <code>principalobjectaccess</code> row count changes.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Measure throughput (rows per hour) from the BulkDeleteOperation record's success count and its start and end times. You need this figure to size the production backlog.</span></li>
+  </ul>
+  <details open>
+    <summary>Draft bulk delete criteria (FetchXML)</summary>
+    <p><span class="badge b-draft">Draft · validate in non-prod</span> Status values come from the published <code>flowsession</code> schema: 4 Succeeded, 5 Skipped, 7 Cancelled, 8 Failed, 9 Faulted, 10 TimedOut, 11 Aborted, 12 Ignored, 14 Terminated. The query leaves out 1 Paused, 2 Running, 3 Waiting and 6 Suspended.</p>
+    <div class="scroll"><pre><code>&lt;fetch&gt;
+  &lt;entity name="flowsession"&gt;
+    &lt;attribute name="flowsessionid" /&gt;
+    &lt;filter type="and"&gt;
+      &lt;condition attribute="completedon" operator="not-null" /&gt;
+      &lt;condition attribute="completedon" operator="olderthan-x-days" value="28" /&gt;
+      &lt;condition attribute="statuscode" operator="in"&gt;
+        &lt;value&gt;4&lt;/value&gt;&lt;value&gt;5&lt;/value&gt;&lt;value&gt;7&lt;/value&gt;&lt;value&gt;8&lt;/value&gt;
+        &lt;value&gt;9&lt;/value&gt;&lt;value&gt;10&lt;/value&gt;&lt;value&gt;11&lt;/value&gt;&lt;value&gt;12&lt;/value&gt;&lt;value&gt;14&lt;/value&gt;
+      &lt;/condition&gt;
+    &lt;/filter&gt;
+  &lt;/entity&gt;
+&lt;/fetch&gt;</code></pre></div>
+    <p class="meta">In the wizard this is <em>Completed On · Older Than X Days · 28</em> plus <em>Status Reason · Equals · [list]</em>. Microsoft's own example uses <em>Completed On · Older Than X Months · 6</em>. Pilot variants: add <code>&lt;condition attribute="regardingobjectid" operator="eq" value="{desktop-flow-guid}" /&gt;</code> to target a single bot, or <code>completedon before 2025-01-01</code> to clear only the oldest slice.</p>
+  </details>
+  <details>
+    <summary>Same job through the Web API (BulkDelete action)</summary>
+    <p><span class="badge b-draft">Draft · validate</span> Use this when you want the job definition in source control or created by a script. <code>RecurrencePattern</code> takes a recurrence rule such as <code>FREQ=DAILY;INTERVAL=1</code>. An empty string means the job runs once. <code>Options.CanRecoverDeletedRecords:false</code> skips the recycle bin, so storage is released.</p>
+    <div class="scroll"><pre><code>POST [org]/api/data/v9.2/BulkDelete
+{
+  "JobName": "FlowSession retention - terminal runs older than 28 days",
+  "QuerySet": [{
+    "@odata.type": "Microsoft.Dynamics.CRM.QueryExpression",
+    "EntityName": "flowsession",
+    "ColumnSet": { "AllColumns": false, "Columns": ["flowsessionid"] },
+    "Criteria": {
+      "FilterOperator": "And",
+      "Conditions": [
+        { "AttributeName": "completedon", "Operator": "OlderThanXDays",
+          "Values": [{ "Value": "28", "Type": "System.Int32" }] },
+        { "AttributeName": "statuscode", "Operator": "In",
+          "Values": [ {"Value":"4","Type":"System.Int32"}, {"Value":"5","Type":"System.Int32"},
+                      {"Value":"7","Type":"System.Int32"}, {"Value":"8","Type":"System.Int32"},
+                      {"Value":"9","Type":"System.Int32"}, {"Value":"10","Type":"System.Int32"},
+                      {"Value":"11","Type":"System.Int32"}, {"Value":"12","Type":"System.Int32"},
+                      {"Value":"14","Type":"System.Int32"} ] }
+      ]
+    }
+  }],
+  "SendEmailNotification": false,
+  "ToRecipients": [], "CCRecipients": [],
+  "RecurrencePattern": "FREQ=DAILY;INTERVAL=1",
+  "StartDateTime": "2026-10-20T07:00:00Z",
+  "Options": { "CanRecoverDeletedRecords": false }
+}</code></pre></div>
+  </details>
+  <div class="out"><b>Output:</b> a validated query, a measured rows-per-hour figure, and a list of confirmed side effects (which child tables were cleared, whether POA moved).</div>
+</div>
+
+<div class="step">
+  <h3>Step 4: Pilot in production with small, oldest-first deletes, weeks 3–4</h3>
+  <ul class="checks">
+    <li><input type="checkbox" aria-label="done"><span>Raise a change request: production data deletion, irreversible, with a named approver. Book an off-hours window when bots run least. Get the robotics team's run calendar to find it.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Decide on <b>Permanent deletion</b>. If the recycle bin is on and you <em>don't</em> tick it, the deleted rows go into the deleted-records store and storage doesn't drop until that retention period ends.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Pilot 1 is a <b>one-off</b> job on the oldest slice only, for example rows completed before a date at least 12 months back. Watch the job, the environment's performance and the bot runs that happen during it.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Work down the backlog in slices: &gt;12 months, &gt;6 months, &gt;3 months, &gt;N days. Each slice is its own one-off job, sized to fit an off-hours window using the Step 3 throughput figure. Don't start one giant job against hundreds of GB.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>After each slice, wait 24–72 hours and re-read PPAC. Microsoft says storage figures can take up to 72 hours to update.</span></li>
+  </ul>
+  <div class="out"><b>Output:</b> the backlog cleared down to the retention line, with deleted counts, failure counts and storage figures logged for each job.</div>
+</div>
+
+<div class="step">
+  <h3>Step 5: Schedule the recurring job and fix regrowth, week 5</h3>
+  <ul class="checks">
+    <li><input type="checkbox" aria-label="done"><span>Create the <b>recurring</b> job using the agreed N. Run it daily off-hours: <em>Run this job after every</em> 1 day, or <code>FREQ=DAILY;INTERVAL=1</code>. A daily job deletes one day of runs at a time, which keeps each run small.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Run it under a service or admin identity that won't be disabled when someone leaves. Record the job owner in the runbook.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Apply the agreed logging change (On run failure, or V2 with TTL, or lower verbosity). Under V2 the TTL applies only to logs created <em>after</em> the change, and bulk delete isn't supported on the Flow Log table. Set the TTL correctly from day one.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Turn on email notification to a shared mailbox, or add the job to whatever monitoring the team already uses.</span></li>
+  </ul>
+  <div class="out"><b>Output:</b> a recurring job is live with a named owner, and the logging setting is changed and documented.</div>
+</div>
+
+<div class="step">
+  <h3>Step 6: Monitor and prove the trend, weeks 5–9</h3>
+  <ul class="checks">
+    <li><input type="checkbox" aria-label="done"><span>Every week, record DB GB, file GB and flowsessionbase and POA GB from PPAC, plus the flowsession row count. Compare against the Step 1 baseline.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Check the recurring job's <em>Run details</em> for failures. Failed rows land in <code>BulkDeleteFailure</code>.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>If DB or file usage hasn't moved within about 2 weeks of a large slice being deleted, open a Microsoft support case (see the Ask section).</span></li>
+    <li><input type="checkbox" aria-label="done"><span>If POA hasn't fallen in line with flowsession, investigate why (sharing or cascade) before you consider any further action.</span></li>
+  </ul>
+  <div class="out"><b>Output:</b> a trend chart or table showing the reduction, as evidence for the acceptance criterion "capacity trends improve".</div>
+</div>
+
+<div class="step">
+  <h3>Step 7: Document and hand over</h3>
+  <ul class="checks">
+    <li><input type="checkbox" aria-label="done"><span>Runbook contents: the retention rule and who approved it, the exact query, the schedule, the job owner, the logging settings, how to pause or cancel the job (Bulk deletion → open job → Actions), the escalation path and the known risks.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Add a note for other robotics environments, which probably have the same pattern. Suggest the same standard there.</span></li>
+    <li><input type="checkbox" aria-label="done"><span>Close the issue with the before and after numbers.</span></li>
+  </ul>
+  <div class="out"><b>Output:</b> a runbook page, the issue closed with evidence, and a reusable standard for other RPA environments.</div>
+</div>
+
+<h3>Can your PPOps toolkit help?</h3>
+<div class="card">
+  <p>I checked <code>/home/user/powerplatformagent</code>. It has <b>no</b> capacity, bulk delete or asyncoperation tooling today. Parts of it can be reused:</p>
+  <ul class="tight">
+    <li><code>DataverseClient.FetchXmlAsync</code> (src/PPOps.Dataverse) already pages FetchXML and handles aggregate queries. You could use it for the Step 1 per-month or per-status profile.</li>
+    <li><code>ppops sweep "records:flowsession where …"</code> is the wrong tool here. <code>RecordSweep</code> lists <em>every</em> matching ID, and at this volume that would mean hundreds of millions of rows.</li>
+    <li><code>BulkUpdateExecutor</code> together with the plan, approve and apply gate (one-time code, plus typing the environment name for production) is the right pattern for a delete as well.</li>
+  </ul>
+  <p><b>Suggested extension (only if you want it, and not part of this task):</b></p>
+  <ol class="tight">
+    <li>A read-only playbook such as <code>ppops diagnose table-growth flowsession --env robotics-prod</code> that reports count by month × status, top <code>regardingobjectid</code> values, the logging settings and existing BulkDeleteOperation jobs, ending with a Work Card.</li>
+    <li>A gated executor, <code>dataverse.bulk-delete-job</code>, that submits the <code>BulkDelete</code> action from a plan. The plan would show the preview count, the query and the recurrence. The verifier would read <code>bulkdeleteoperation</code> for success and failure counts. Its rollback would honestly be "none". Say so in the plan's risk field.</li>
+  </ol>
+</div>
+</section>
+
+<!-- ========================= ASK ========================= -->
+<section id="ask">
+<h2>2. What you should ask</h2>
+<p>Questions are grouped by who to ask. Ask the five marked <span class="badge b-must">Must-ask</span> first, because the rest of the plan waits on them.</p>
+
+<h3>RPA / robotics solution owners (Cdn Seg)</h3>
+<div class="card">
+  <div class="q"><span class="badge b-must">Must-ask</span><b>How far back do you actually look at desktop flow run history and action logs, and why?</b>
+    <div class="why">This sets the retention N from real use rather than from the 1–4 week guess. It unblocks Step 2.</div></div>
+  <div class="q"><span class="badge b-must">Must-ask</span><b>Does any bot or report read flow session records or action logs as part of its process (reconciliation, SLA reports, re-processing)?</b>
+    <div class="why">If something depends on old sessions, deleting them breaks it. You need to find these dependencies before you choose the delete criteria.</div></div>
+  <div class="q"><b>Can we switch action logs to "On run failure", or to Logs V2 with a TTL, and lower the verbosity on high-volume bots?</b>
+    <div class="why">This stops the 5.3 TB from growing back. Without it, the bulk delete job only treats the symptom.</div></div>
+  <div class="q"><b>When are the quietest hours for unattended runs?</b>
+    <div class="why">This sets the off-hours window for the pilot and the recurring job.</div></div>
+  <div class="q"><b>Which flows produce the most runs or log the most actions (loops over large inputs, screenshots on error)?</b>
+    <div class="why">This points to bot-level fixes, and tells you whether a pilot on one flow is meaningful.</div></div>
+</div>
+
+<h3>Business process owners and audit / compliance</h3>
+<div class="card">
+  <div class="q"><span class="badge b-must">Must-ask</span><b>Is there a records-retention or audit obligation on RPA execution evidence for these processes, and is Dataverse the system of record for it?</b>
+    <div class="why">This decides whether a deletion is allowed at all, and whether evidence has to be exported first. Get the answer in writing.</div></div>
+  <div class="q"><b>Do the input or output payloads or action logs contain personal or customer data?</b>
+    <div class="why">If they do, keeping them for a short time is a privacy <em>benefit</em> worth stating in the decision record. It also tells you not to copy production into a sandbox for testing without approval.</div></div>
+  <div class="q"><b>Is there a legal hold that covers any of these processes?</b>
+    <div class="why">A legal hold would require an exclusion in the delete criteria.</div></div>
+</div>
+
+<h3>Environment admins (Power Platform / Dataverse)</h3>
+<div class="card">
+  <div class="q"><span class="badge b-must">Must-ask</span><b>Is "Keep deleted Dataverse records" on in this environment, and can bulk deletes on flowsession use Permanent deletion?</b>
+    <div class="why">If deleted rows go to the recycle bin, storage won't fall for up to 90 days. This affects both the approval and the timeline.</div></div>
+  <div class="q"><b>Who holds the Bulk Delete privilege in production, and which identity should own the recurring job?</b>
+    <div class="why">This decides who runs the job and makes sure it survives people leaving.</div></div>
+  <div class="q"><b>Are there existing (failing) bulk delete jobs, or plug-ins or flows registered on flowsession Delete?</b>
+    <div class="why">You may find conflicting jobs, and per-row plug-in execution would make deletes much slower.</div></div>
+  <div class="q"><b>What is the change process for an irreversible production data deletion, and who approves it?</b>
+    <div class="why">This is the path for the Step 4 change request.</div></div>
+  <div class="q"><b>Are any sharing-related settings on (for example "share reassigned records with original owner"), or is there any automation that shares flow sessions or desktop flows?</b>
+    <div class="why">This explains the 61 GB of POA and tells you whether it will shrink as flowsession shrinks.</div></div>
+</div>
+
+<h3>FinOps / capacity owners</h3>
+<div class="card">
+  <div class="q"><span class="badge b-must">Must-ask</span><b>What target counts as "reasonable" (GB for DB and file), and by when? Is the tenant in overage or pay-as-you-go now?</b>
+    <div class="why">This defines what "done" means. It also tells you how urgent the work is, since overage can block environment copies and restores.</div></div>
+  <div class="q"><b>Is there capacity allocated specifically to this environment, and are alerts configured?</b>
+    <div class="why">Alerts could double as the ongoing monitor for Step 6.</div></div>
+  <div class="q"><b>If you move to Logs V2, is there enough Dataverse <em>log</em> capacity?</b>
+    <div class="why">V2 moves the cost from file capacity to log capacity, so the log side needs sizing first.</div></div>
+</div>
+
+<h3>Microsoft support (only if needed)</h3>
+<div class="card">
+  <div class="q"><b>Ask if storage hasn't dropped about 72 hours to 2 weeks after a large confirmed delete, or if POA doesn't shrink:</b> "Is space reclaimed for flowsession file columns and the POA rows tied to deleted records? Is there a backend cleanup still pending?"
+    <div class="why">Direct deletion on POA isn't supported, so only Microsoft can confirm orphaned access rows or run a backend cleanup. Bring the BulkDeleteOperation IDs and your before and after numbers.</div></div>
+  <div class="q"><b>What throughput should we expect from bulk delete for flowsession at this volume, and is there a faster supported route for a one-time backlog?</b>
+    <div class="why">This matters if the backlog would take weeks of off-hours windows. Fast delete mode is documented as sandbox-only.</div></div>
+</div>
+</section>
+
+<!-- ========================= LEARN ========================= -->
+<section id="learn">
+<h2>3. What you need to learn</h2>
+<p>Topics are in priority order. The badge shows how deep you need to go for this task.</p>
+<div class="card">
+  <div class="learn"><span class="badge b-ex">Expert</span><b>Bulk delete jobs: wizard, API, recurrence, permanent deletion, failure handling</b>
+    <p>This is the main tool for the task. Key facts: a job deletes only records created <em>before</em> it starts. It follows cascade rules and fires plug-ins on every row. It never rolls back. <em>Permanent deletion</em> (<code>CanRecoverDeletedRecords:false</code>) skips the recycle bin. Out-of-the-box recurring system jobs let you change their schedule but not their query.</p>
+    <div class="links"><a href="https://learn.microsoft.com/en-us/power-platform/admin/delete-bulk-records">Remove data with bulk deletion</a> · <a href="https://learn.microsoft.com/en-us/power-apps/developer/data-platform/delete-data-bulk">Delete data in bulk (BulkDelete / Options)</a> · <a href="https://learn.microsoft.com/en-us/power-platform/admin/view-take-action-bulk-deletion-jobs">View and act on bulk deletion jobs</a></div></div>
+
+  <div class="learn"><span class="badge b-ex">Expert</span><b>Desktop flow run history: the flowsession table and its children</b>
+    <p>A desktop flow run is a <code>flowsession</code> row. Its file columns are <code>AdditionalContext</code> (V1 logs), <code>Inputs</code> and <code>Outputs</code>. Microsoft documents a cascade to Workflow Binary, which holds inputs, outputs and exception screenshots, so deleting the session removes those binaries. Know the <code>statuscode</code> values and the <code>completedon</code> and <code>regardingobjectid</code> fields well enough to write criteria from memory.</p>
+    <div class="links"><a href="https://learn.microsoft.com/en-us/power-automate/desktop-flows/how-to/delete-desktop-flow-run-history">Delete desktop flow run history data</a> · <a href="https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/entities/flowsession">flowsession table reference</a> · <a href="https://learn.microsoft.com/en-us/power-automate/desktop-flows/monitor-desktop-flow-runs">Monitor desktop flow runs</a></div></div>
+
+  <div class="learn"><span class="badge b-ex">Expert</span><b>Desktop flow action logs: V1 vs V2, activation status, verbosity, TTL</b>
+    <p>V1 is the default and stores logs as a file blob in <code>AdditionalContext</code>, which uses <b>file</b> capacity and has no automatic retention. V2 stores logs in the <code>flowlog</code> elastic table, which uses <b>log</b> capacity and has a built-in TTL. Settings: Activation status (Enabled, On run failure, Disabled); verbosity (Full, Debug, Custom, Warning, Error); and <em>FlowLogs entity time to live in minutes</em>. Recent change to note: the TTL applies only to new logs. V2 works only for runs launched from a cloud flow. Changing versions doesn't migrate existing logs. Bulk delete isn't supported on Flow Log. Check whether V2 is GA or still preview for your tenant before you recommend it for production.</p>
+    <div class="links"><a href="https://learn.microsoft.com/en-us/power-automate/desktop-flows/configure-desktop-flow-logs">Desktop flow action logs configuration</a> · <a href="https://learn.microsoft.com/en-us/power-apps/maker/data-platform/create-edit-elastic-tables">Elastic tables</a></div></div>
+
+  <div class="learn"><span class="badge b-wk">Working</span><b>Capacity reporting and when space is reclaimed</b>
+    <p>Learn the PPAC per-table consumption view and its daily trend, which covers up to 3 months. Storage figures can take up to 72 hours to update after deletions, and capacity is evaluated about every 24 hours. File and database are pooled at tenant level, and log capacity is separate. Overage can block environment lifecycle operations such as copy and restore.</p>
+    <div class="links"><a href="https://learn.microsoft.com/en-us/power-platform/admin/capacity-storage">Dataverse capacity-based storage</a> · <a href="https://learn.microsoft.com/en-us/power-platform/admin/free-storage-space">Free up storage space</a></div></div>
+
+  <div class="learn"><span class="badge b-wk">Working</span><b>Deleted record keeping (recycle bin)</b>
+    <p>When it is on, deleted rows count against storage for 1–90 days. "Delete all records" purges them. This is the most likely reason that "we deleted it and nothing changed".</p>
+    <div class="links"><a href="https://learn.microsoft.com/en-us/power-platform/admin/restore-deleted-table-records">Restore deleted Dataverse table records</a></div></div>
+
+  <div class="learn"><span class="badge b-wk">Working</span><b>PrincipalObjectAccess (POA): why it grows and how it shrinks</b>
+    <p>POA stores direct shares, team shares, access-team membership and access inherited through cascade-share or reparent relationships. Deleting rows from it directly isn't supported. You shrink it by changing the security model (revoke sharing, change cascade, run the inherited-access cleanup). Expect it to shrink as flowsession rows are deleted <em>only if</em> the POA rows belong to flowsession records. Confirm that first.</p>
+    <div class="links"><a href="https://learn.microsoft.com/en-us/power-platform/admin/manage-principalobjectaccess-storage">Manage PrincipalObjectAccess storage</a> · <a href="https://learn.microsoft.com/en-us/troubleshoot/power-platform/power-apps/dataverse/cleanup-inherited-access">Clean up inherited access</a></div></div>
+
+  <div class="learn"><span class="badge b-aw">Awareness</span><b>FetchXML aggregate limits and counting at scale</b>
+    <p>Aggregate queries on very large tables can fail when they hit the aggregate row limit. Count in date windows instead. Use <code>RetrieveTotalRecordCount</code> for fast approximate totals.</p></div>
+
+  <div class="learn"><span class="badge b-aw">Awareness</span><b>Dataverse long-term retention</b>
+    <p>This is an archive alternative to deletion, for cases where compliance needs history kept but not in the active database. Per the logs doc, it isn't supported for V1 action logs. It is worth knowing exists if compliance asks for "keep but cheaper".</p>
+    <div class="links"><a href="https://learn.microsoft.com/en-us/power-apps/maker/data-platform/data-retention-overview">Dataverse long-term data retention overview</a></div></div>
+</div>
+</section>
+
+<!-- ========================= RISKS ========================= -->
+<section id="risks">
+<h2>4. Risks and watch-outs</h2>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Risk</th><th>Why it bites</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td><b>Irreversible deletion</b></td><td>No rollback, and partial runs stay deleted.</td><td>Sign-off on retention, non-prod test, preview counts, oldest-first slices, a change request.</td></tr>
+    <tr><td><b>Recycle bin keeps the storage</b></td><td>With Keep deleted records on, storage doesn't fall for up to 90 days.</td><td>Use Permanent deletion if compliance agrees. Otherwise use "Delete all records" in the deleted-records view after a grace period.</td></tr>
+    <tr><td><b>Deleting in-flight runs</b></td><td>Running, Waiting or Suspended sessions break the orchestration or monitoring.</td><td>Only terminal statuses in scope, and require <code>completedon not-null</code>.</td></tr>
+    <tr><td><b>Production load during deletes</b></td><td>A huge backlog job competes with bots for the same database.</td><td>Off-hours windows, slices sized from measured throughput, watch run durations during the pilot.</td></tr>
+    <tr><td><b>Regrowth</b></td><td>V1 logs keep adding file blobs every run.</td><td>Recurring daily job, plus On run failure or V2 with TTL, plus lower verbosity.</td></tr>
+    <tr><td><b>V2 shifts cost to log capacity</b></td><td>About 3 KB per action (Microsoft's estimate). Large bots can use hundreds of MB per run.</td><td>Size the log capacity with FinOps before switching. Set the TTL on day one, because it isn't retroactive.</td></tr>
+    <tr><td><b>Hidden dependencies</b></td><td>Reports, re-processing or audits that read old sessions.</td><td>The must-ask questions to solution owners and compliance.</td></tr>
+    <tr><td><b>Plug-ins or flows on Delete</b></td><td>They fire for every row, which slows the job and may have side effects.</td><td>Check registrations in Step 1.</td></tr>
+    <tr><td><b>Recurring job silently stops</b></td><td>The owner leaves, or failures go unnoticed.</td><td>A service identity owns the job, notifications go to a shared mailbox, weekly trend check.</td></tr>
+    <tr><td><b>POA doesn't shrink</b></td><td>The POA rows may belong to other tables or inherited access, not flowsession.</td><td>Measure after the pilot. Investigate sources. Escalate to Microsoft rather than trying a direct delete, which isn't supported.</td></tr>
+    <tr><td><b>Reporting lag misread as failure</b></td><td>PPAC can take up to 72 hours to reflect deletions.</td><td>Wait 72 hours before judging, and use row counts as an early signal.</td></tr>
+    <tr><td><b>Parent and child desktop flow runs</b></td><td><code>parentdesktopflowrunid</code> links child sessions to parents. How deletion cascades between them isn't confirmed.</td><td>Test in non-prod with flows that call sub-flows or child desktop flows.</td></tr>
+  </tbody>
+</table>
+</div>
+</section>
+
+<!-- ========================= ASSUMPTIONS ========================= -->
+<section id="assumptions">
+<h2>5. Assumptions (to confirm)</h2>
+<p>These are my inferences, not established facts. Confirm each one before relying on it.</p>
+<ul class="checks">
+  <li><input type="checkbox" aria-label="confirmed"><span><span class="badge b-inf">Inferred</span>The environment uses <b>Logs V1</b> (the default), so most of the 5.3 TB is <code>AdditionalContext</code> blobs. Check the Features setting.</span></li>
+  <li><input type="checkbox" aria-label="confirmed"><span><span class="badge b-inf">Inferred</span>Most desktop flows run <b>unattended from cloud flows</b>, so the V2 and "On run failure" settings apply to them. Local attended runs are not covered by those settings.</span></li>
+  <li><input type="checkbox" aria-label="confirmed"><span><span class="badge b-inf">Inferred</span>The 61 GB of POA is mostly tied to flowsession records, through sharing of run records with flow or machine owners. This has <b>not</b> been verified. It is the reason for the "likely shrinks" in the issue.</span></li>
+  <li><input type="checkbox" aria-label="confirmed"><span><span class="badge b-inf">Inferred</span>No existing recurring bulk delete job covers flowsession in this environment.</span></li>
+  <li><input type="checkbox" aria-label="confirmed"><span><span class="badge b-inf">Inferred</span>The 1–4 week expectation in the issue is a proposal from the team, not an approved compliance position.</span></li>
+  <li><input type="checkbox" aria-label="confirmed"><span><span class="badge b-inf">Inferred</span>A non-production robotics environment exists with representative runs for testing.</span></li>
+  <li><input type="checkbox" aria-label="confirmed"><span><span class="badge b-inf">Inferred</span>You (Sahar) will design and approve the approach, and an environment admin will execute it in production.</span></li>
+</ul>
+</section>
+
+<!-- ========================= CONTEXT LOG ========================= -->
+<section id="context">
+<h2>6. Context log</h2>
+<div class="empty">Additional context will be added here as it's provided.</div>
+</section>
+
+<footer>Last updated 2026-10-08 · Draft criteria and settings are based on Microsoft Learn documentation as of this date. Validate them in your tenant before production use.</footer>
+</main>
+</body>
+</html>
